@@ -5,7 +5,7 @@
       "name": "sdlc-agent",
       "source": {
         "source": "local",
-        "path": "./plugins/codex"
+        "path": "."
       },
       "policy": {
         "installation": "AVAILABLE",
