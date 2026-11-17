@@ -6,6 +6,10 @@ Implementation date: 2026-11-17. Python runtime: 3.12.14, Linux.
 
 Local result: **45 tests passed** (`python3 -m unittest discover -s tests -v`, 15.637 seconds).
 
+The initial GitHub matrix exposed a Python 3.11 discovery-root leak from the shared unittest loader.
+The gate now creates a fresh TestLoader for each invocation; the zero-test regression case covers it.
+Python 3.12 and 3.13 passed the initial remote test/build matrix. See the PR checks for the final matrix.
+
 - Standard-library unit and integration suite: contracts, DAG cycles, command argv, artifact scope,
   symlink protection, process timeout/output cap, SQLite cache, lock exclusion, total prompt budget,
   actual Git worktree integration, parallel conflicts, retry feedback, resume, repair invalidation,

@@ -7,7 +7,9 @@ import unittest
 
 def main(argv=None):
     args = sys.argv[1:] if argv is None else argv
-    suite = unittest.defaultTestLoader.discover(args[0] if args else "tests")
+    # Python 3.11 retains discovery roots on the global loader between calls.
+    # A fresh loader keeps this gate independent of its caller's test suite.
+    suite = unittest.TestLoader().discover(args[0] if args else "tests")
     if suite.countTestCases() == 0:
         print("Quality gate failed: zero tests discovered", file=sys.stderr)
         return 2
