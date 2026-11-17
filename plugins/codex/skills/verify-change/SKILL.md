@@ -1,10 +1,8 @@
 ---
 name: verify-change
-description: Verify implementation with acceptance and regression tests.
+description: Run acceptance and regression checks against a proposed implementation.
 ---
 
 # verify-change
 
-Trace each requirement to a test. Add negative, boundary and failure-recovery tests where applicable. Do not weaken assertions to accommodate incorrect implementation. Check tests actually discover cases. Return blocked when implementation violates requirements. Describe coverage gaps and required environment. The runtime executes configured test commands and saves evidence independently of your claims.
-
-Use the run-sdlc skill for persisted execution and verification evidence.
+Trace requirement IDs to actual tests. Inspect the project test configuration and execute the appropriate commands using the host terminal. Check that tests were discovered. Add missing boundary and failure cases. Record command, exit code, observed output and tested commit or working-tree state in artifacts/test-report.md. Never infer success from a model summary or weaken a test to fit broken behavior.

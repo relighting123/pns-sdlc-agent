@@ -1,49 +1,7 @@
-# Validation record
+# 検証 / 검증
 
-Implementation date: 2026-11-17. Python runtime: 3.12.14, Linux.
+`python3 -m unittest discover -s tests -v`로 배포 스킬 일치·매니페스트 경로·역할 TOML·훅의 실제 실행·런타임 제거를 검사한다.
+호스트에 실제 설치한 LLM end-to-end 실행은 별도 검증이 필요하다. 구조 검증 통과가 호스트 설치 성공을 뜻하지 않는다.
 
-## Executed validation
-
-Local result: **45 tests passed** (`python3 -m unittest discover -s tests -v`, 15.637 seconds).
-
-The initial GitHub matrix exposed a Python 3.11 discovery-root leak from the shared unittest loader.
-The gate now creates a fresh TestLoader for each invocation; the zero-test regression case covers it.
-Python 3.12 and 3.13 passed the initial remote test/build matrix. See the PR checks for the final matrix.
-
-- Standard-library unit and integration suite: contracts, DAG cycles, command argv, artifact scope,
-  symlink protection, process timeout/output cap, SQLite cache, lock exclusion, total prompt budget,
-  actual Git worktree integration, parallel conflicts, retry feedback, resume, repair invalidation,
-  test failure blocking, review blocking, deployment authorization, exact-commit release checks,
-  healthcheck failure, rollback and indeterminate-deployment reconciliation.
-- Real command-provider subprocess end-to-end: stdin prompt → structured JSON → proposed source →
-  actual check command → read-only review → Git result branch.
-- Codex and Claude adapter contract tests: command flags, model override, output parsing, usage and errors.
-- Plugin generation: correct host manifest locations, seven skills, six Claude role files, no MCP dependency,
-  and refusal to overwrite an existing plugin directory.
-- Python wheel build and package-resource inspection; CLI/module entrypoints.
-
-The test suite uses controlled inference responses to deterministically exercise failure paths. These
-tests validate orchestration and contracts, not the semantic coding ability of an LLM.
-
-## Live provider status
-
-Codex authentication status was present. A real `codex exec` smoke attempt failed before inference because
-the environment's Codex state directory was read-only (`failed to initialize ... Read-only file system`).
-This was not treated as a model success. No credential relocation or sandbox bypass was attempted.
-
-Claude Code was not installed in the execution environment. Its adapter was contract-tested with
-representative JSON envelopes but not live authenticated inference. The native host plugin loading
-commands were not run here. Validate them against the host versions used by your team.
-
-## Deployment status
-
-Tests executed real local commands for release, health verification and rollback in temporary directories.
-No production account, cloud environment or user service was deployed. Configure the target project's
-trusted deployment commands and validate them in staging before production use.
-
-## Scope of CI
-
-GitHub Actions runs the standalone Python package tests and builds a wheel on Linux with Python
-3.11, 3.12 and 3.13. The repository contains only this runtime, its plugins, tests and documentation.
-The original MIT copyright notice is retained in LICENSE. Legacy application code and workflows
-have been removed; Git history remains available.
+수동 시나리오: 새 기능 요구 → 요구사항·설계 → 구현 → 실패 테스트 수정 → 독립 리뷰 → 중단 후 재개.
+확인 항목: 사용자 변경 보존, 허위 테스트 성공 없음, 현재 소스와 증거 일치, 병렬 작업 파일 충돌 없음, 불필요한 배포 없음.

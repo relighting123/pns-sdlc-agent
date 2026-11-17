@@ -1,10 +1,8 @@
 ---
 name: design-system
-description: Design architecture and contracts from accepted requirements.
+description: Design architecture and implementation tasks from accepted requirements.
 ---
 
 # design-system
 
-Read the accepted requirements. Define module boundaries, API/data schemas, error semantics, migration and compatibility strategy. Map every requirement to implementation and tests. Include alternatives and the reason for the chosen design. Describe trust boundaries and failure recovery. Write artifacts/design.md. Decompose independent work into path-disjoint tasks for the operator to express in the workflow DAG.
-
-Use the run-sdlc skill for persisted execution and verification evidence.
+Read artifacts/requirements.md and relevant existing source. Write artifacts/design.md with module boundaries, interfaces, error handling and requirement-to-test mapping. Define tasks with dependencies, owned file paths and acceptance checks. Prefer a small change consistent with the existing project. Mark independent tasks eligible for native delegation.

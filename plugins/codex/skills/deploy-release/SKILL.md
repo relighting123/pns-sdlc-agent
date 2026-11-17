@@ -1,10 +1,8 @@
 ---
 name: deploy-release
-description: Release a tested commit with health verification and rollback.
+description: Deploy an authorized, tested revision and verify health with rollback readiness.
 ---
 
 # deploy-release
 
-Use the runtime deployment path, not an agent-invented shell command. Confirm the immutable workflow defines command, healthcheck and rollback. Execute only after test and review dependencies succeed and the operator enables deployment. Bind approval to the recorded commit and configuration digest. Persist intent before side effects. On failure execute rollback; on an uncertain outcome stop for reconciliation. Never silently retry an indeterminate deployment.
-
-Use the run-sdlc skill for persisted execution and verification evidence.
+Read artifacts/test-report.md and artifacts/review.md. Verify the tested source has not changed. Identify the exact target, deploy command, health check and rollback procedure from project configuration. Use existing user authorization; request authorization only if it is absent. Execute through host tools, record the revision and outcomes in artifacts/deployment.md. On failure execute the agreed rollback. If external effects are uncertain, inspect the target before any retry.
