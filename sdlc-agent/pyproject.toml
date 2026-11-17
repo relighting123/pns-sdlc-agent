@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdlc-agent"
+version = "1.0.0"
+description = "Script-first, provider-neutral SDLC agent runtime"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+sdlc-agent = "sdlc_agent.cli:main"
+
+[tool.setuptools.package-data]
+sdlc_agent = ["resources/**/*.md", "resources/**/*.json"]
+
+[tool.setuptools.packages.find]
+include = ["sdlc_agent*"]

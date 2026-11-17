@@ -1,0 +1,7 @@
+{
+  "role": "review",
+  "skill": "skills/review/SKILL.md",
+  "context": "fresh-process; selected source and direct dependency summaries only",
+  "output": "sdlc_agent.contracts.RESULT_SCHEMA",
+  "writes": "workflow task scope; review/deploy read-only"
+}
