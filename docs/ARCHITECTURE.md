@@ -31,7 +31,6 @@ Python 실행 엔진·CLI·provider subprocess·SQLite 상태와 결과 캐시·
 전체 소요시간은 요청 접수부터 최종 응답까지 측정하고 모델 대기·도구 실행·반복 횟수를 가능한 호스트 로그로 구분한다.
 
 ## 공식 형식 참고
-- https://developers.openai.com/plugins/build/plugins
 - https://developers.openai.com/codex/subagents
 - https://code.claude.com/docs/en/plugins-reference
 - https://code.claude.com/docs/en/hooks

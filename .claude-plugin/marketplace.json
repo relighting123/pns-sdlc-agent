@@ -1,0 +1,13 @@
+{
+  "name": "pns-sdlc-agent",
+  "owner": {
+    "name": "SDLC Agent contributors"
+  },
+  "plugins": [
+    {
+      "name": "sdlc-agent",
+      "source": "./",
+      "description": "Host-native SDLC skills, agents and wiki retrieval"
+    }
+  ]
+}
