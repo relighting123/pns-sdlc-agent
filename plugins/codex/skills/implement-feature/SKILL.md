@@ -1,10 +1,8 @@
 ---
 name: implement-feature
-description: Implement accepted requirements in scoped source files.
+description: Implement scoped features directly using the host coding tools.
 ---
 
 # implement-feature
 
-Read requirements and design plus the selected source. Implement complete behavior, validation and failure paths. Preserve public compatibility unless the requirement changes it. Add focused tests for observable behavior. Return full file contents only for paths within writes. Do not change control files or test commands. If essential source was omitted, return blocked with the exact required paths. Do not claim tests passed; the runtime executes configured checks.
-
-Use the run-sdlc skill for persisted execution and verification evidence.
+Read the accepted requirements and design, then edit the actual project source with the host file tools. Respect project instructions and existing user changes. Implement complete behavior and focused tests. Keep each change within assigned file ownership. Run relevant checks and record their exact commands and outcomes. If essential source or decisions are missing, stop the affected task and explain the missing input.

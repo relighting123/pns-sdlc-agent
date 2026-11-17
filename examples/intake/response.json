@@ -1,1 +1,0 @@
-{"items":[{"id":"FEATURE-17","title":"CSV export","body":"Add a CSV export function for selected records.","acceptance":["UTF-8 output includes column headers","Empty selection produces a header-only CSV","Commas and quotes are escaped correctly"],"internal_metadata":"This unmapped field is not sent to the model."}]}

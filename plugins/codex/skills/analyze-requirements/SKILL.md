@@ -1,10 +1,8 @@
 ---
 name: analyze-requirements
-description: Analyze a new feature or change request before implementation.
+description: Analyze feature requirements and acceptance criteria before design or development.
 ---
 
 # analyze-requirements
 
-Extract functional and nonfunctional requirements. Assign REQ-001 style IDs. Define observable pass/fail acceptance criteria, scope exclusions, dependencies, security and performance constraints. Record assumptions explicitly. Return blocked for missing decisions that change public behavior; do not invent them. Write artifacts/requirements.md. Each requirement must have a verification method.
-
-Use the run-sdlc skill for persisted execution and verification evidence.
+Read the user request and relevant project documents. Write artifacts/requirements.md with stable REQ IDs, observable acceptance criteria, scope exclusions, constraints and unresolved decisions. Preserve imported requirement IDs. Ask only about decisions that block correct implementation; record other assumptions. Do not invent missing API contracts.

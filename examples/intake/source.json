@@ -1,9 +1,0 @@
-{
-  "source": "project-issues",
-  "url": "https://example.com/api/requirements",
-  "bearer_token_env": "REQUIREMENTS_API_TOKEN",
-  "items_pointer": "/items",
-  "fields": {"id": "/id", "title": "/title", "description": "/body", "acceptance": "/acceptance"},
-  "max_bytes": 2000000,
-  "timeout_seconds": 30
-}
