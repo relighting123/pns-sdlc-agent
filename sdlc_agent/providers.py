@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .contracts import ContractError, RESULT_SCHEMA, validate_result
 from .process import run
+from .performance import normalize_usage
 
 
 def invoke(config: dict, task: dict, prompt: str, cwd: Path, timeout: int) -> tuple[dict, dict]:
@@ -55,5 +56,6 @@ def invoke(config: dict, task: dict, prompt: str, cwd: Path, timeout: int) -> tu
         except (ValueError, TypeError) as exc:
             raise ContractError(f"Invalid provider result: {exc}") from exc
         return result, {"duration_ms": response["duration_ms"], "usage": usage,
+                        "normalized_usage": normalize_usage(kind, usage),
                         "output_bytes": len(json.dumps(result).encode()), "provider": kind,
                         "model": model, "cache_hit": False}

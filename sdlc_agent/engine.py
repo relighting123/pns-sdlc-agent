@@ -167,9 +167,10 @@ class Engine:
             try:
                 prompt, metrics = context.build(path, task, dependencies, config.get("context_bytes", 48000), feedback)
                 provider = config.get("provider", {"kind": "codex"})
-                cache_key = digest({"prompt": prompt, "provider": provider, "head": record["head"], "contract": 1})
+                cache_key = digest({"prompt": prompt, "provider": provider, "head": record["head"], "contract": 2,
+                                    "namespace": config.get("cache_namespace", "default")})
                 cacheable = task["stage"] in {"requirements", "design"} and config.get("cache", True)
-                result = self.store.cached(cache_key) if cacheable else None
+                result = self.store.cached(cache_key, config.get("cache_ttl_seconds", 86400)) if cacheable else None
                 if result:
                     metrics.update({"cache_hit": True, "duration_ms": 0, "usage": {}})
                 else:
@@ -301,9 +302,10 @@ class Engine:
         events = self.store.events(run_id)
         calls = [e["payload"] for e in events if e["kind"] == "inference"]
         durations = sorted(c["duration_ms"] for c in calls if not c["cache_hit"])
+        from .performance import summarize
         return {"id": run_id, "status": record["status"], "base": record["base"], "head": record["head"],
                 "branch": f"sdlc/{run_id}", "tasks": [{k: t[k] for k in ("id", "status", "attempts", "error")} for t in record["tasks"]],
-                "metrics": {"inference_calls": len(calls), "cache_hits": sum(c["cache_hit"] for c in calls),
+                "metrics": {**summarize(calls), "inference_calls": len(calls), "cache_hits": sum(c["cache_hit"] for c in calls),
                             "reserved_prompt_bytes": self.store.reserved(run_id),
                             "prompt_bytes": sum(c["prompt_bytes"] for c in calls),
                             "estimated_input_tokens": sum(c["estimated_input_tokens"] for c in calls),

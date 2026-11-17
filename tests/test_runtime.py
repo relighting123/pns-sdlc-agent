@@ -207,6 +207,18 @@ print(json.dumps({"status":"completed", "summary":"done", "files":files, "accept
             self.engine.execute(other)
         self.assertEqual(invoke.call_count, 1)
 
+    def test_cache_namespace_and_disabled_cache_force_model_call(self):
+        cfg = config([task("spec", "requirements", writes=["artifacts/spec.md"])])
+        self.execute(cfg)
+        for changes in ({"cache_namespace": "v2"}, {"cache": False}, {"cache_ttl_seconds": 0}):
+            current = {**cfg, **changes}
+            key = self.engine.create(current)
+            with patch("sdlc_agent.providers.invoke", side_effect=fake_provider) as invoke:
+                record = self.engine.execute(key)
+            self.assertEqual(record["status"], "succeeded")
+            self.assertEqual(invoke.call_count, 1)
+            self.assertEqual(self.engine.report(key)["metrics"]["model_calls"], 1)
+
     def test_dirty_checkout_rejected(self):
         (self.root / "README.md").write_text("work in progress")
         with self.assertRaises(ContractError):

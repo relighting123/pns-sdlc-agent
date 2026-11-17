@@ -69,11 +69,15 @@ def validate_workflow(config: dict) -> dict:
             raise ContractError("Unknown stage")
         if not isinstance(task.get("prompt"), str) or not task["prompt"].strip():
             raise ContractError("Task prompt is required")
-        for name in ("depends_on", "reads", "writes", "required_outputs"):
+        for name in ("depends_on", "reads", "writes", "required_outputs", "required_reads", "priority_reads", "exclude_reads"):
             if not isinstance(task.get(name, []), list) or not all(isinstance(x, str) for x in task.get(name, [])):
                 raise ContractError(f"{name} must be a string array")
         for pattern in task.get("reads", []) + task.get("writes", []):
             relative_path(pattern)
+        for pattern in task.get("priority_reads", []) + task.get("exclude_reads", []) + task.get("required_reads", []):
+            relative_path(pattern)
+        if any(any(char in name for char in "*?[") for name in task.get("required_reads", [])):
+            raise ContractError("required_reads must contain exact paths")
         for name in task.get("required_outputs", []):
             relative_path(name)
         for command in task.get("checks", []):
@@ -131,6 +135,13 @@ def validate_workflow(config: dict) -> dict:
         value = config.get(name, default)
         if type(value) is not int or value < 1 or value > upper:
             raise ContractError(f"Invalid {name}")
+    ttl = config.get("cache_ttl_seconds", 86400)
+    if type(ttl) is not int or not 0 <= ttl <= 2592000:
+        raise ContractError("cache_ttl_seconds must be 0..2592000")
+    if not isinstance(config.get("cache_namespace", "default"), str) or not config.get("cache_namespace", "default"):
+        raise ContractError("cache_namespace must be a nonempty string")
+    if type(config.get("cache", True)) is not bool:
+        raise ContractError("cache must be boolean")
     deploy = config.get("deployment")
     if deploy:
         for key in ("command", "healthcheck", "rollback"):
