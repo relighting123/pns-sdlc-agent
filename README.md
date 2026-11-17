@@ -160,6 +160,28 @@ MCP 서버를 사용하거나 command 어댑터 뒤에 연결할 수 있습니�
 안정적인 지침을 프롬프트 앞쪽에 둡니다. 제공자의 prefix cache는 제공자 정책에 따르며 런타임이
 캐시 적중을 강제로 보장하지 않습니다. 로컬 응답 캐시와 제공자의 cached input tokens는 서로 다릅니다.
 
+## Codex 플러그인 설치
+
+저장소 루트에서 Codex CLI 마켓플레이스를 등록하고 플러그인을 설치합니다.
+
+```bash
+codex plugin marketplace add .
+codex plugin marketplace list
+codex plugin add sdlc-agent@pns-sdlc-agent
+codex plugin list
+```
+
+GitHub의 최적화 기능 브랜치에서 설치하는 경우:
+
+```bash
+codex plugin marketplace add https://github.com/relighting123/pns-sdlc-agent.git --ref feat/intake-performance --sparse .agents/plugins --sparse plugins/codex
+codex plugin add sdlc-agent@pns-sdlc-agent
+```
+
+Codex를 재시작하거나 새 세션을 열고 `run-sdlc` 스킬을 사용합니다. 예: "이 저장소에 CSV 내보내기 기능을 구현해줘. 먼저 SDLC workflow를 만들고 요구사항·설계·개발·테스트·리뷰를 진행해줘." 플러그인은 절차를 안내하고, 실제 작업 배정·격리·상태관리에는 `sdlc-agent` Python CLI가 필요합니다. CLI 실행을 위해 저장소 설치와 Codex CLI 인증은 별도로 준비해야 합니다.
+
+Codex 플러그인 브라우저 및 로컬 마켓플레이스 관련 명령은 Codex CLI 버전에 따라 제공 여부를 확인하세요. 공식 명령은 `codex plugin marketplace add`, `codex plugin add`입니다.
+
 ## 플러그인 사용
 
 패키지를 먼저 설치합니다. 기본 실행은 위 CLI로 가능하며 플러그인은 호스트의 발견·호출 편의를 제공합니다.
