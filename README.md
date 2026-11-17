@@ -1,626 +1,200 @@
 # SDLC Agent
 
-범용 AI 개발 워크플로: 요구사항 분석 → 설계 → 구현 → 테스트 → 리뷰 → 배포.
+요구사항 → 설계 → 구현 → 테스트 → 리뷰 → 배포를 실행하는 범용 Python 런타임입니다.
+특정 산업이나 업무 도메인에 종속되지 않습니다. 런타임 의존성은 Python 3.11+와 Git이며,
+실제 추론에는 인증된 Codex CLI, Claude Code 또는 조직의 JSON 입출력 명령 어댑터를 사용합니다.
 
-**새 실행 패키지:** [sdlc-agent/README.md](sdlc-agent/README.md)
+이 패키지는 실행 가능한 오케스트레이터입니다. 목표 애플리케이션 자체는 사용자가 입력한
+요구사항과 프로젝트의 소스·테스트·배포 설정을 사용해 생성합니다. 특정 클라우드 계정,
+배포 대상, 운영 자격증명을 임의로 가정하지 않습니다.
 
-**구조 설명:** [아키텍처](sdlc-agent/docs/ARCHITECTURE.md) · [설정 계약](sdlc-agent/docs/CONFIGURATION.md) · [검증 기록](sdlc-agent/docs/VALIDATION.md)
+## 먼저 해야 할 일
+
+| 단계 | 우선 작업 | 저장 결과 | 통과 조건 |
+|---|---|---|---|
+| 요구사항 | 범위, REQ ID, 비기능 요구, 수용 기준, 모호한 결정 분리 | `artifacts/requirements.md` | 필수 산출물 존재, 차단 사유 없음 |
+| 설계 | 모듈 경계, API·데이터 계약, 실패 복구, 테스트 추적성 | `artifacts/design.md` | 필수 산출물 존재, 요구사항 연결 |
+| 개발 | 의존 작업 분리, 경로 소유권, 구현과 테스트 | 소스·테스트 파일, 작업 커밋 | 출력 계약·경로 검사 및 지정 검사 통과 |
+| 테스트 | 정상·경계·실패·회귀 사례, 실제 테스트 실행 | 테스트 파일, 실행 근거 | 검사 프로세스 exit 0; 기본 Python gate는 0개 테스트 거부 |
+| 리뷰 | 전체 요구사항·소스·테스트 검토 | 읽기 전용 리뷰 결과 | 모든 선행 작업 완료, 미해결 issue 없음 |
+| 배포 | 대상, 배포 명령, 상태 확인, 롤백 정의 | 배포/상태 확인/롤백 이벤트 | 명시적 실행 승인, 정확한 커밋 재검증, 상태 확인 성공 |
+
+요구사항의 의미적 완전성과 리뷰 품질은 모델 판단입니다. 런타임은 구조·경로·의존성·실행 결과를
+검증하며, 모델의 자연어 주장만으로 테스트 성공을 인정하지 않습니다.
+
+## 설치와 실행
 
 ```bash
-python3 -m pip install ./sdlc-agent
+git clone https://github.com/relighting123/pns-sdlc-agent.git
+cd pns-sdlc-agent
+python3 -m pip install .
 sdlc-agent doctor
-sdlc-agent --repo /path/to/project init --goal "구현할 기능과 수용 기준"
+
+# TARGET은 구현할 대상 프로젝트의 Git 저장소
+sdlc-agent --repo /path/to/TARGET init --goal "구현할 기능과 수용 기준"
 ```
 
-Python 런타임은 독립 세션·Git worktree, DAG 작업 배정, 실행 체크포인트, 수정 재실행,
-토큰 입력 예산·캐시·사용량 측정, 실제 테스트 실행 및 배포·상태 확인·롤백을 구현합니다.
-Codex, Claude Code, 사용자 command 어댑터를 지원하며 MCP 설치는 필요하지 않습니다.
-설치 후 생성되는 workflow의 소스 경로·테스트·배포 명령을 대상 프로젝트에 맞춰 설정하세요.
-
-기존 포크의 TypeScript/Rust 코드는 보존되어 있습니다. 새 Python 패키지는 아래 upstream
-프로젝트의 npm 설치·브랜딩·런타임에 의존하지 않습니다. 기존 라이선스와 저작권 고지는 유지합니다.
-
-<details>
-<summary>기존 upstream 프로젝트 문서</summary>
-
-# oh-my-codex (OMX)
-
-<p align="center">
-  <img src="https://yeachan-heo.github.io/oh-my-codex-website/omx-character-nobg.png" alt="oh-my-codex character" width="280">
-  <br>
-  <em>Start Codex stronger, then let OMX add better prompts, workflows, and runtime help when the work grows.</em>
-  <br><br>
-  <strong>Liked OmX but find it a bit overkill? <a href="https://github.com/Yeachan-Heo/gajae-code">Try gajae-code</a>.</strong><br>
-  <sub>Keep Codex OAuth with a faster, cheaper, simpler, and more powerful SDK-based path for OpenClaw, Hermes, Grokbot, and other integrations.</sub>
-</p>
-
-[![npm version](https://img.shields.io/npm/v/oh-my-codex)](https://www.npmjs.com/package/oh-my-codex)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
-[![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/wSyUQYfhAw)
-
-**Website:** https://yeachan-heo.github.io/oh-my-codex-website/
-
-**Docs:** [Getting Started](./docs/getting-started.html) · [Agents](./docs/agents.html) · [Skills](./docs/skills.html) · [Integrations](./docs/integrations.html) · [Demo](./DEMO.md) · [OpenClaw guide](./docs/openclaw-integration.md)
-
-**Community:** [Discord](https://discord.gg/wSyUQYfhAw) — shared Gajae community server for oh-my-codex, [gajae-code](https://github.com/Yeachan-Heo/gajae-code), and related tooling.
-
-## Official project and package
-
-The official/original OMX project is this repository, [`Yeachan-Heo/oh-my-codex`](https://github.com/Yeachan-Heo/oh-my-codex), and the official npm package for this project is [`oh-my-codex`](https://www.npmjs.com/package/oh-my-codex). Install this project with `npm install -g oh-my-codex` (or alongside Codex CLI as shown below).
-
-Third-party projects or forks that use names such as “OMX v2” are not official continuations, replacements, or release lines for this repository unless this README or the docs explicitly say so. When in doubt, trust this repository and the `oh-my-codex` package as the official install target.
-
-OMX is a workflow layer for [OpenAI Codex CLI](https://github.com/openai/codex).
-
-<table>
-<tr>
-<td><strong>🚨 CAUTION — RECOMMENDED DEFAULT ONLY: macOS or Linux with Codex CLI.</strong><br><br><strong>OMX is primarily designed and actively tuned for that path.</strong><br><strong>Native Windows and Codex App are not the default experience, may break or behave inconsistently, and currently receive less support.</strong></td>
-</tr>
-</table>
-
-It keeps Codex as the execution engine and makes it easier to:
-- start a stronger Codex session by default
-- run one consistent workflow from clarification to completion
-- invoke the canonical workflow with `$plan`, `$ultragoal`, `$team`, `$code-review`, and `$ultraqa` — each independently, no fixed chain
-- keep project guidance, plans, logs, and state in `.omx/`
-
-## Core Maintainers
-
-| Role | Name | GitHub |
-| --- | --- | --- |
-| Creator & Lead | Yeachan Heo | [@Yeachan-Heo](https://github.com/Yeachan-Heo) |
-| Maintainer | Doyun Ha | [@HaD0Yun](https://github.com/HaD0Yun) |
-| Maintainer | Valeriy Pavlovich | [@iqdoctor](https://github.com/iqdoctor) |
-
-## Ambassadors
-
-| Name | GitHub |
-| --- | --- |
-| Sigrid Jin | [@sigridjineth](https://github.com/sigridjineth) |
-
-## Top Collaborators
-
-| Name | GitHub |
-| --- | --- |
-| Doyun Ha | [@HaD0Yun](https://github.com/HaD0Yun) |
-| Junho Yeo | [@junhoyeo](https://github.com/junhoyeo) |
-| JiHongKim98 | [@JiHongKim98](https://github.com/JiHongKim98) |
-| Lor | [@gobylor](https://github.com/gobylor) |
-| HyunjunJeon | [@HyunjunJeon](https://github.com/HyunjunJeon) |
-
-## Recommended default flow
-
-If you want the default OMX experience, start here:
-
-Choose one install path. If Codex CLI is already installed (Homebrew, npm, or another supported method):
+`TARGET/workflow.json`에서 소스 read/write 범위, 테스트 명령과 필요 시 배포 명령을 설정합니다.
+기본 생성 설정은 `src/`, `tests/`를 사용하는 Python 프로젝트용입니다.
+Node·Java 등은 해당 프로젝트의 경로와 실제 검증 명령으로 바꿉니다. 초기화를 완료한 workflow와
+기존 파일을 커밋한 뒤 실행합니다. 원래 checkout은 깨끗해야 합니다.
 
 ```bash
-codex --version
-npm install -g oh-my-codex
-# from the git project you want Codex to edit; choose a task-specific name
-omx --worktree=feat/task --madmax --xhigh
+sdlc-agent validate /path/to/TARGET/workflow.json
+sdlc-agent --repo /path/to/TARGET run /path/to/TARGET/workflow.json
+sdlc-agent --repo /path/to/TARGET status RUN_ID
+sdlc-agent --repo /path/to/TARGET report RUN_ID
 ```
 
-If you do not have Codex CLI yet and want npm to manage it:
+run ID는 시작 즉시 stderr에 JSON으로 출력됩니다. 완료된 코드는 대상 저장소의
+`sdlc/RUN_ID` 브랜치에 저장됩니다. 사용자가 작업 중인 브랜치를 자동으로 전환·병합·push하지 않습니다.
+검토 후 일반 Git 명령으로 통합할 수 있습니다.
 
 ```bash
-npm install -g @openai/codex
-npm install -g oh-my-codex
+git -C /path/to/TARGET diff HEAD..sdlc/RUN_ID
+git -C /path/to/TARGET merge --ff-only sdlc/RUN_ID
 ```
 
-Do not run a combined `npm install -g @openai/codex oh-my-codex` over an existing Homebrew-owned `codex` binary such as `/opt/homebrew/bin/codex`; npm may fail with `EEXIST` when `@openai/codex` tries to create the same binary. OMX only needs a working, authenticated `codex` command on `PATH`; it does not require Codex to be installed through npm.
+실행 결과는 성공 0, 차단·승인 대기 2, 설정/실행 오류 1, 키보드 중단 130으로 종료됩니다.
 
-On a real `oh-my-codex` version bump, the global npm install now prints an explicit reminder instead of launching setup automatically. When you're ready, run the scoped setup command below or use `omx update` to check npm and then run the same setup refresh path.
-
-OMX also checks for npm updates at launch on a throttled cadence and prompts before scheduling the update after the current session exits. Set `OMX_AUTO_UPDATE=0` to disable the launch-time check, or set `OMX_AUTO_UPDATE=defer` to schedule the same deferred update without prompting.
-
-Choose the setup scope deliberately:
-- Use `omx setup --scope project --merge-agents` from the git project you want OMX to operate on when that repository should own the durable `AGENTS.md` guidance.
-- Use `omx setup --scope user` for user-level Codex setup when you are not preparing the current directory as an OMX project.
-- Avoid running project-scoped setup from a broad home directory or operating hub unless that directory is intentionally the project under review. A home-level `AGENTS.md` often contains global safety and routing rules; keep project-specific OMX runtime guidance in the real repository instead.
-
-### Persisting an explicit AGENTS merge policy
-
-`omx setup --merge-agents`, `omx setup --no-merge-agents`, and `omx setup --clear-merge-agents-policy` are the only policy selectors; use their bare forms (not `=value` spellings). Repeating an identical selector is harmless, but mixing set and clear choices fails before setup changes anything. An explicit set overrides a saved policy. A successful explicit set records `mergeAgents: true` or `false` in the current working root's `./.omx/setup-scope.json`, even when setup scope is `user`; it never becomes a global user preference or leaks to another root. Later `omx update` replays a valid matching policy for both immediate and deferred refreshes.
-
-`true` takes the existing merge branch. `false` only suppresses that branch: it does not promise preservation, replacement, or any new safety mode, so the existing prompt, skip, managed-refresh, plugin-default, and force behavior still applies. A matching-scope review retains the policy while unrelated settings change. Reset or a scope change removes the inherited policy unless the same setup run explicitly sets `true` or `false`; clear always removes the policy and cannot be combined with a set selector. Malformed, unknown, nonboolean, or wrong-scope saved data is ignored safely.
-
-`--force` is independent and transient: it is neither recorded nor replayed, and does not override an explicit merge policy. Setup atomically commits explicit set or clear intent only after all setup work succeeds, including when active-session or plugin-symlink safeguards skip the current `AGENTS.md` write, so the next refresh can honor the requested policy. This does not make merge the default or revive the rejected #2892 merge-by-default approach. Older OMX versions safely ignore the field, but may erase it when rewriting their known setup preferences.
-
-
-**Codex plugin install note:** this repo also ships an official Codex plugin layout at `plugins/oh-my-codex` with marketplace metadata in `.agents/plugins/marketplace.json`. That plugin bundles the mirrored skill surface plus plugin-scoped companion metadata for official Codex lifecycle hooks, optional MCP compatibility servers, and apps. It is still **not** a replacement for the global `oh-my-codex` CLI plus scoped setup: plugin-scoped hooks launch the installed `omx` CLI, and both setup modes normally install setup-owned native agent TOMLs for `agent_type` routing. In either mode, `omx setup --disable-hooks` disables OMX-owned hook registrations and related enablement, then returns before normal asset installation, configuration, `AGENTS.md`, HUD, and state setup. Legacy mode also installs prompt and skill copies. Plugin mode uses plugin discovery for bundled skills, archives/removes legacy OMX-managed prompt copies, and removes stale generated/non-installable native-agent files. Plugin setup without `--force` preserves user-authored or ambiguous role files, except that disabling Team (`--disable-team` or persisted `teamMode: "disabled"`) backs up and removes `team-executor.toml` regardless of ownership. See [Plugin bundle SSOT](docs/plugin-bundle-ssot.md) for these ownership rules. Plugin mode still needs a persistent scope `AGENTS.md` (`~/.codex/AGENTS.md` for user setup or `./AGENTS.md` for project setup) as the durable orchestration guidance layer; session-scoped AGENTS files only compose that durable guidance with runtime overlays and are not a replacement.
-
-Then work normally inside Codex:
-
-```text
-# Durable objective/checkpoints for a long task:
-/goal Create a safe authentication refactor plan, implement it, and verify login, logout, and refresh-token behavior.
-
-$deep-interview "clarify the authentication change"
-$ralplan "approve the auth plan and review tradeoffs"
-$ultragoal "turn the approved plan into durable Codex goals"
-```
-
-That is the main path.
-Before you treat the runtime as ready, run the quick-start smoke test below: `omx doctor` verifies the install shape, while `omx exec` proves the active Codex runtime can actually authenticate and complete a model call from the current environment.
-Start OMX strongly, clarify first when needed, approve the plan, then use `$ultragoal` as the default durable completion wrapper. Use `$team` inside that execution path only when a specific Ultragoal story needs coordinated parallel work.
-
-## What OMX is for
-
-Use OMX if you already like Codex and want a better day-to-day runtime around it:
-- a standard workflow built around `$deep-interview` -> `$ralplan` -> `$ultragoal`
-- research boundaries: use `$best-practice-research` for ordinary pre-planning official/upstream evidence, `$autoresearch` for bounded validator-gated research artifacts (`$deep-interview --autoresearch` for intake, then `$autoresearch` with the chosen validation mode) for research missions, and feed any research findings into `$ralplan` for architecture synthesis
-- durable multi-goal handoffs with `$ultragoal` and `.omx/ultragoal` artifacts as the default completion path after planning
-- specialist roles and supporting skills when the task needs them
-- project guidance through scoped `AGENTS.md`
-- durable state under `.omx/` for plans, logs, memory, and mode tracking
-
-If you want plain Codex with no extra workflow layer, you probably do not need OMX.
-
-## Quick start
-
-### Requirements
-
-- Node.js 20+
-- Codex CLI installed, verified with `codex --version`, and authenticated (Homebrew or npm are both fine; do not reinstall `@openai/codex` with npm if Homebrew already owns `codex`)
-- Codex auth configured and visible in the same shell/profile that will run OMX
-- `tmux` on macOS/Linux if you want the recommended durable team runtime
-- `psmux` on native Windows only if you intentionally want the less-supported Windows team path
-
-### A good first session
-
-After install, check both boundaries:
+## 중단, 실패, 수정
 
 ```bash
-omx doctor
-codex login status
-omx exec --skip-git-repo-check -C . "Reply with exactly OMX-EXEC-OK"
+# 중단된 작업부터 재개; 완료된 작업은 다시 호출하지 않음
+sdlc-agent --repo /path/to/TARGET resume RUN_ID
+
+# 외부 장애 등을 해결한 뒤 실패 작업 재시도
+sdlc-agent --repo /path/to/TARGET resume RUN_ID --retry-failed
+
+# 리뷰/테스트 결함을 개발 작업으로 돌려보내고 하위 테스트·리뷰를 재실행
+sdlc-agent --repo /path/to/TARGET repair RUN_ID --task develop \
+  --feedback "동시 요청 시 중복 생성되는 경계 조건 수정"
 ```
 
-`omx doctor` catches missing OMX files, hooks, and runtime prerequisites. The real smoke test catches auth, profile, and provider/base-URL problems that only appear when Codex performs an actual request.
+`repair`는 원본 실행 이력을 보존하고 새 run ID를 만듭니다. 선택 작업과 그 후속 작업만 무효화하며,
+영향받지 않은 완료 결과는 재사용합니다. 설정을 변경해야 하면 workflow를 수정·커밋한 뒤 새 run을
+시작합니다. `resume`은 원본의 설정 snapshot과 기준 커밋을 그대로 사용합니다.
 
-Launch OMX the recommended way from a git project:
+## 배포
+
+workflow의 `deployment`에 다음 세 명령을 **실제 배포 환경에 맞게** 지정합니다. 명령은
+문자열 shell이 아닌 argv 배열입니다. 런타임은 `SDLC_COMMIT`, `SDLC_RUN_ID`,
+`SDLC_CONFIG_DIGEST`를 각 배포 명령의 환경변수로 전달합니다.
+
+```json
+{
+  "deployment": {
+    "command": ["python3", "ops/deploy.py"],
+    "healthcheck": ["python3", "ops/healthcheck.py"],
+    "rollback": ["python3", "ops/rollback.py"]
+  }
+}
+```
+
+배포 명령은 검증된 detached worktree에서 실행됩니다. 배포 스크립트는 커밋별 불변 artifact를
+배포하고, `SDLC_RUN_ID`로 멱등성을 보장하도록 구현하는 것이 좋습니다. 상태 확인은 실제 대상의
+버전과 가용성을 검사해야 합니다. `pass`처럼 아무것도 검사하지 않는 명령은 운영 검증이 아닙니다.
 
 ```bash
-omx --worktree=feat/task --madmax --xhigh
+sdlc-agent --repo /path/to/TARGET resume RUN_ID --allow-deploy
 ```
 
-On macOS/Linux interactive terminals with `tmux` available, this starts the
-leader in OMX-managed detached tmux by default so the HUD/runtime panes can be
-created and recovered. `--worktree` also moves the launch into a separate git
-checkout, which is the safer default when using `--madmax`. Replace
-`feat/task` with a branch-like name for the task.
-
-### Concurrent standard conversations
-
-A standard launch owns one writable session pointer under its selected `OMX_ROOT`. A second ordinary `omx` launch from the same checkout therefore fails closed instead of sharing or silently changing that root. Give each additional conversation an explicit, distinct root:
+테스트는 배포 직전 정확한 커밋에서 다시 실행됩니다. 배포/상태 확인 실패 시 롤백합니다.
+프로세스 중단 또는 롤백 실패로 결과가 불명확하면 자동으로 재배포하지 않습니다. 대상을 확인한 뒤:
 
 ```bash
-omx
-OMX_ROOT="$HOME/.omx/instances/second-conversation" omx
-OMX_ROOT="$HOME/.omx/instances/third-conversation" omx
+sdlc-agent --repo /path/to/TARGET resolve-deployment RUN_ID --outcome rolled-back
+# 또는 실제 성공을 확인한 경우; 런타임이 healthcheck를 다시 실행함
+sdlc-agent --repo /path/to/TARGET resolve-deployment RUN_ID --outcome succeeded
+sdlc-agent --repo /path/to/TARGET resume RUN_ID
 ```
 
-PowerShell:
+## 프로젝트 구조
 
-```powershell
-$env:OMX_ROOT = "$HOME/.omx/instances/second-conversation"
-omx
-```
+| 경로 | 책임 |
+|---|---|
+| `sdlc_agent/cli.py` | 초기화·검증·실행·재개·수정·상태·보고서 명령 |
+| `sdlc_agent/contracts.py` | DAG, 설정, 경로, 모델 JSON 계약 검증 |
+| `sdlc_agent/engine.py` | 작업 배정·병렬 실행·수정 재실행·통합·배포 게이트 |
+| `sdlc_agent/providers.py` | Codex, Claude, 사용자 command 어댑터 |
+| `sdlc_agent/context.py` | 역할/스킬 지연 로딩·선택 소스·의존성 요약 |
+| `sdlc_agent/workspace.py` | Git worktree, 경로 소유권, 충돌 검사, 실행 잠금 |
+| `sdlc_agent/process.py` | 프로세스 시간 제한·출력 제한·종료 처리 |
+| `sdlc_agent/store.py` | SQLite 트랜잭션·체크포인트·감사 이벤트·캐시·예산 |
+| `sdlc_agent/verify.py` | 테스트 0개 발견을 거부하는 Python 검증 gate |
+| `sdlc_agent/bundle.py` | 동일 리소스로 Codex/Claude 플러그인 생성 |
+| `sdlc_agent/resources/agents/` | 단계별 역할 정의; context builder가 실제 로딩 |
+| `sdlc_agent/resources/skills/` | 6개 단계별 작업 지침 |
+| `plugins/codex/`, `plugins/claude/` | 생성된 호스트 플러그인: 7개 스킬, Claude 역할 6개 |
+| `tests/` | 계약, 프로세스, 실제 Git, 어댑터, 실패·복구 통합 테스트 |
+| `docs/` | 아키텍처, 설정 계약, 최적화·MCP 판단, 운영 검증 |
 
-Command Prompt:
+## 스킬·서브에이전트·MCP의 역할
 
-```bat
-set "OMX_ROOT=%USERPROFILE%\.omx\instances\second-conversation"
-omx
-```
+스킬은 수행 절차입니다. 에이전트는 그 절차와 제한된 문맥을 받은 새 모델 세션입니다.
+스크립트는 Git, 테스트, 상태 저장, 배포 같은 결정적 실행을 담당합니다.
+폴더만 놓아서 별도 컨텍스트가 자동 생성되는 것은 아닙니다. 이 런타임은 작업마다 실제로 새 CLI
+프로세스를 시작하고 선택한 입력만 전달합니다. 병렬 작업에는 서로 다른 worktree를 배정합니다.
 
-User-specified roots are literal: launching twice with the same explicit `OMX_ROOT` remains a fatal owner conflict. Separate checkouts have separate default roots, while `--worktree` and `--madmax` keep their existing isolation behavior.
+MCP는 필수가 아닙니다. 이 구현은 MCP 서버 없이 작동합니다. 로컬 파일·Git·빌드·테스트는
+직접 스크립트가 적합합니다. 중앙 인증·여러 호스트 공유·원격 도구 발견이 필요한 경우 기존
+MCP 서버를 사용하거나 command 어댑터 뒤에 연결할 수 있습니다. MCP 자체를 재구현하지 않습니다.
+토큰 차이는 프로토콜 자체가 아니라 모델에 전달하는 도구 정의, 결과, 반복 횟수에 따라 달라집니다.
 
-### Madmax and worktree launch safety
+## 최적화 기능
 
-`--madmax` is OMX shorthand for Codex
-`--dangerously-bypass-approvals-and-sandbox`. It removes the normal approval and
-sandbox guardrails, so only use it in trusted repositories and environments.
-`--high` and `--xhigh` are shorthand for `-c model_reasoning_effort="high|xhigh"`; a normal strong session is `omx --madmax --xhigh` (or `omx --worktree=feat/task --madmax --xhigh` from a git project).
+| 기능 | 구현 | 효과와 한계 |
+|---|---|---|
+| 필요한 스킬만 로딩 | 현재 stage의 역할과 SKILL.md만 포함 | 공통 프롬프트 증가 억제 |
+| 선택적 컨텍스트 | tracked 파일의 reads 패턴, 크기 예산, 누락 목록 | 전체 저장소·대화 재전송 방지; 누락 파일은 명시 |
+| 요약 핸드오프 | 직접 의존 작업의 summary·acceptance·파일 경로 | 이전 대화 전체 복제 방지 |
+| 모델 분리 | provider 기본 model + task별 model override | 단순 작업과 어려운 작업 모델을 운영자가 선택 |
+| 응답 캐시 | prompt·provider·HEAD·계약 버전 해시 | 요구사항·설계만 캐시; 변경 시 무효화, 24h TTL |
+| 병렬 실행 | DAG의 준비된 독립 작업 + max_workers | 임계 경로 단축; 기본 선형 workflow는 순차 실행 |
+| 증분 재개 | 완료 체크포인트 재사용 | 재개 때 완료 작업의 모델 호출 생략 |
+| 수정 범위 제한 | repair의 후속 작업만 무효화 | 검증을 건너뛰지 않고 재작업 범위 축소 |
+| 전체 입력 예산 | SQLite 원자적 prompt bytes 예약 | 병렬 호출에도 동일 상한; 실제 과금 토큰 상한은 아님 |
+| 출력 제한 | JSON 파일 수·크기, 프로세스 출력·시간 제한 | 폭주 방지, bounded retry |
+| 측정 | 실제 provider usage, 추정 tokens, cache hit, p50/p95 | 실측과 추정 구분; 절감률은 workload별 비교 필요 |
 
-When you use `--madmax` from a git repository, prefer a worktree launch instead
-of running directly in the current checkout. For repeatable or concurrent work,
-use a named worktree:
+안정적인 지침을 프롬프트 앞쪽에 둡니다. 제공자의 prefix cache는 제공자 정책에 따르며 런타임이
+캐시 적중을 강제로 보장하지 않습니다. 로컬 응답 캐시와 제공자의 cached input tokens는 서로 다릅니다.
+
+## 플러그인 사용
+
+패키지를 먼저 설치합니다. 기본 실행은 위 CLI로 가능하며 플러그인은 호스트의 발견·호출 편의를 제공합니다.
 
 ```bash
-omx --worktree=feature/auth --madmax --xhigh
+# Claude Code
+claude --plugin-dir ./plugins/claude
+
+# 새 위치로 재생성; 기존 경로는 덮어쓰지 않음
+sdlc-agent bundle --host codex --output /path/to/new-codex-plugin
+sdlc-agent bundle --host claude --output /path/to/new-claude-plugin
 ```
 
-If you are outside a git repository, omit `--worktree`; worktree launches
-require Git.
+Codex 번들은 `.codex-plugin/plugin.json`과 `skills/` 구조입니다. 사용하는 Codex 버전의 로컬
+플러그인 등록 방식으로 `plugins/codex`를 등록합니다. 호스트 버전별 등록 UI/명령은 다를 수 있습니다.
+Codex 번들은 native agent TOML 자동 설치를 수행하지 않으며, 별도 세션 배정은 Python 런타임이 담당합니다.
+Claude 번들은 발견 가능한 native agent Markdown도 제공합니다. native agent만 개별 사용하면
+SQLite 기록·경로 검사·배포 게이트는 자동 적용되지 않으므로 전체 실행에는 `run-sdlc`를 사용합니다.
 
-For concurrent `--madmax` sessions, do **not** run them all in the same
-directory. Give each session its own named worktree:
+## 검증과 운영 범위
 
 ```bash
-omx --worktree=feature/auth --madmax --xhigh
-omx --worktree=fix/flaky-tests --madmax --xhigh
+python3 -m unittest discover -s tests -v
+python3 -m pip wheel --no-deps .
 ```
 
-`--worktree` / `-w` with no name creates or reuses a detached launch worktree at
-`../<repo>.omx-worktrees/launch-detached`. `--worktree=<name>`,
-`--worktree <name>`, or `-w <name>` creates or reuses a named launch worktree
-under `../<repo>.omx-worktrees/` and checks out that branch name. OMX consumes
-the worktree flag before starting Codex; it is not forwarded to Codex itself.
-Treat the unnamed detached form as a one-off convenience: if the source checkout
-advances after that worktree is created, a later unnamed launch can fail with
-`worktree_target_mismatch` because `launch-detached` still points at the old
-HEAD. Use a named worktree for repeated work, or remove the old detached
-worktree before retrying.
-If the target launch worktree is already dirty, OMX warns and launches as-is, so
-clean, commit, or stash that worktree before relying on it for isolation.
-
-For `omx team`, workers already use dedicated worktrees automatically by
-default; `--worktree` on `omx team` is only a legacy-compatible override.
-
-Repo-aware tools receive the same canonical context in launch, team-worker, and autoresearch runtimes: `OMX_REPO_ROOT`, `OMX_WORKTREE_ROOT`, `OMX_GIT_COMMON_DIR`, `OMX_WORKTREE_SCOPE`, `OMX_CODEGRAPH_MODE`, and `OMX_CODEGRAPH_PROJECT_PATH`. `OMX_CODEGRAPH_MODE=auto` prefers a worktree-local `.codegraph/codegraph.db`, then a leader/repo `.codegraph/codegraph.db`, otherwise resolves to `off`. Explicit `shared`, `local`, and `off` are honored. OMX does not install CodeGraph, auto-index worktrees, or copy/symlink `.codegraph`; shared leader indexes are useful for baseline navigation but are not branch-accurate for worktree-only changes.
-
-If you want a one-off launch with no OMX tmux/HUD management, use `--direct`:
-
-```bash
-omx --direct --yolo
-```
-
-For a persistent shell/profile preference, set an environment policy:
-
-```bash
-OMX_LAUNCH_POLICY=direct omx --yolo
-```
-
-Return to the auto/default behavior with:
-
-```bash
-unset OMX_LAUNCH_POLICY
-```
-
-CLI policy flags win over the environment, and the last CLI policy flag before
-`--` wins:
-
-```bash
-OMX_LAUNCH_POLICY=direct omx --tmux --yolo
-```
-
-Use `OMX_LAUNCH_POLICY=direct|tmux|detached-tmux|auto`. This iteration only
-adds CLI and environment controls; it intentionally does not add a config-file
-setting. If you run `--direct` from inside an existing tmux pane, OMX will not
-create HUD splits, enable mouse mode, or wrap extended-key handling, but the
-process still runs inside that already-open terminal pane.
-
-Then try the canonical workflow:
-
-```text
-# Copy/pasteable durable-goal example:
-/goal Ship the checkout bug fix with a durable objective, checkpoints for reproduction, implementation, regression tests, and final verification.
-
-$plan "approve the checkout bug-fix plan and review tradeoffs"
-$ultragoal "execute the approved checkout fix with checkpoint evidence"
-```
-
-Use `$team` when an active Ultragoal story needs coordinated parallel work.
-
-### `/goal` and skill selection
-
-Start a normal strong session with `omx --madmax --xhigh` (or add `--worktree=<task>` in a git repo). Inside that session, execute directly or use `$ultragoal` for durable multi-goal runs, `$team` for coordinated parallel work, or `$plan` when the task needs explicit planning first. Use `/goal` when the task itself needs a durable objective/checkpoint structure that Codex should keep reconciling across turns.
-When native `get_goal` responses are unavailable or wrapped by the tool transport, Ultragoal preserves artifact-backed status without claiming completion; see [Ultragoal goal-mode diagnostics and recovery](./docs/ultragoal.md).
-
-Add only 2-5 relevant skills by default. More skills are allowed when the task scope justifies them, but loading a large catalog is usually a context-budget and attention-quality problem, not a hard parser/runtime blocker. Treat it as a concrete runtime blocker only when a command actually errors.
-
-Anti-pattern:
-
-```text
-omx --madmax --xhigh
-# Then immediately load 20 skills "just in case" before stating the task.
-# This bloats session context and makes the model spend attention on irrelevant workflows.
-```
-
-## A simple mental model
-
-OMX does **not** replace Codex.
-
-It adds a better working layer around it:
-- **Codex** does the actual agent work
-- **OMX role keywords** make useful roles reusable
-- **OMX skills** make common workflows reusable
-- **`.omx/`** stores plans, logs, memory, and runtime state
-
-Most users should think of OMX as **better task routing + better workflow + better runtime**, not as a command surface to operate manually all day.
-
-## Start here if you are new
-
-1. If Codex CLI already exists, verify it with `codex --version` and install or update OMX with `npm install -g oh-my-codex`; otherwise install `@openai/codex` separately first if you want npm to manage Codex
-2. After install or real OMX version bumps, run `omx setup --scope project --merge-agents` from the target git project or `omx setup --scope user` for user-level Codex setup, or use `omx update` when you also want npm to check for and install the latest build before refreshing setup
-3. Run `omx doctor`
-4. Run a real execution smoke test: `codex login status` and `omx exec --skip-git-repo-check -C . "Reply with exactly OMX-EXEC-OK"`
-5. Launch with a named worktree from a git repo, for example `omx --worktree=feat/task --madmax --xhigh`; if you run concurrent `--madmax` sessions, use distinct named worktrees such as `--worktree=feature/auth`
-6. Use `$deep-interview "..."` when the request or boundaries are still unclear
-7. Use `$ralplan "..."` to approve the plan and review tradeoffs
-8. Use `$ultragoal` or `$team` when the task needs durable or parallel execution; add `/goal` when durable objective/checkpoint structure should be explicit
-
-## Recommended workflow
-
-`$autopilot` is the first-class canonical orchestrator for the staged workflow `$deep-interview -> $ralplan -> $ultragoal`. The chain is its defining default, while each stage remains independently invocable when earlier input contracts are already satisfied.
-
-1. `$deep-interview` — iterative Socratic ambiguity clearance, resumable state, and execution-ready requirements artifacts.
-2. `$ralplan` — architecture, feasibility, and consensus planning over the deep-interview artifact.
-3. `$ultragoal` — durable multi-goal execution with `.omx/ultragoal` ledger checkpoints.
-4. `$team` — coordinated parallel execution when a story benefits from multiple lanes.
-
-`$deep-interview` is an independent requirements stage, not an alias for `$plan --interview`, and never implements directly. Planning skills stop at planning artifacts; code changes require an explicit execution lane (`$ultragoal` or `$team`).
-
-Inside an Ultragoal story, use `$team` only when that story benefits from coordinated parallel execution.
-
-## Common in-session surfaces
-
-| Surface | Use it for |
-| --- | --- |
-| `$plan "..."` | optional planning and clarification (`--interview` mode) |
-| `$ultragoal "..."` | durable multi-goal completion after the approved plan |
-| `$team "..."` | coordinated parallel execution when the work is big enough |
-| `/skills` | browsing installed skills and supporting helpers |
-| `/goal ...` | durable objective/checkpoint structure for tasks that must reconcile progress across turns |
-| `omx mission <file>` | sequential prompt/checklist batch runs through `omx exec`, with `.omx/missions/<slug>/summary.json` and `ledger.jsonl` operator artifacts |
-
-## Advanced / operator surfaces
-
-These are useful, but they are not the main onboarding path.
-
-### Mission queue runner
-
-Use `omx mission` when you have a short checklist of OmX/Codex prompts that should run one after another instead of opening a separate shell command for each prompt. Start with `omx mission plan ./mission.md` or `omx mission ./mission.md --dry-run` to validate parsing and inspect the durable summary, then run `omx mission run ./mission.md -- --model gpt-5` when the prompts are ready. Interrupted runs can be inspected with `omx mission status ./mission.md`, continued with `omx mission resume ./mission.md`, operator-blocked with `omx mission mark ./mission.md --task task-002 --status blocked`, and repaired task-by-task with `omx mission rerun ./mission.md --task task-002`. See [`docs/mission.md`](./docs/mission.md) for input format, status output, and artifact details.
-
-### Export a previous conversation
-
-Use `omx session search "a phrase you remember"` to find a session ID, then
-`omx session export <session-id> --output conversation.md` to save its conversation.
-Export accepts an exact ID or a unique prefix and includes active and archived
-transcripts from the same Codex homes discovered by session search. Use
-`--format json` for structured output, `--include-tools` for tool arguments and
-outputs, or `--codex-home <path>` to select one home. Omitting `--output` writes
-to stdout; an existing output file is never overwritten.
-
-Only user and assistant messages are included by default. System/developer
-instructions and reasoning records are excluded; message text is not redacted.
-See [session export](./docs/session-export.md) for supported records and examples.
-
-### Inspect session token usage
-
-Run `omx session usage --since 7d --sort tokens` to inspect recorded cumulative
-token usage across local active and archived sessions. Add `--project current`
-or `--session <id-fragment>` to narrow the selection, `--json` for structured
-output, and `--codex-home <path>` to inspect one home. `--limit` limits displayed
-sessions; totals still cover all matches. Mirrors of the same session are counted
-once, and missing measurements are reported as unknown.
-
-`--since` selects sessions by their last recorded activity. Their counters can
-include earlier work, so this is not a period consumption or billing report.
-Cached input and reasoning output are subsets of input and output. See
-[session usage](./docs/session-usage.md) for snapshot and coverage semantics.
-
-### Diagnose a session's execution timeline
-
-Run `omx session timeline <session-id>` to inspect tool calls, turn boundaries,
-and context compactions without exporting conversation text. Calls are paired
-with their results by call ID, including parallel calls, and the report shows
-explicit failures, unmatched calls, observed durations, and namespace-aware
-per-tool totals.
-Use `--kind tools --sort duration --limit 10` to find slow calls, `--status failed`
-to inspect failures, or `--tool <name>` to focus on one tool. Filters and pagination
-affect the event list; summary counts always cover the whole session.
-
-The command supports exact IDs or unique prefixes, active and archived sessions,
-`--codex-home <path>`, and JSON reports with `--json --output timeline.json`.
-Unknown durations remain unknown, and a recorded result without an explicit error
-does not prove success. See [session timeline](./docs/session-timeline.md) for
-supported records, status meanings, and examples.
-
-### Compare two sessions
-
-Use `omx session compare <baseline-id> <candidate-id>` to compare execution counts,
-explicit failures, and namespace-aware tool timing after a workflow change.
-The report distinguishes added and removed tools, preserves unknown measurements,
-and reports absolute and percentage changes. Use `--sort duration` to find the
-largest mean-latency increases, or `--json --output comparison.json` to save a report.
-
-For automation, `--fail-on-regression` exits 2 on observed regressions and 3 on
-inconclusive evidence. `--max-duration-increase 10` changes the default 20% mean
-tool latency threshold; latency checks require complete timing coverage on both
-sides. Display filters never change the whole-session assessment. Compare
-similar workloads and see [session comparison](./docs/session-compare.md) for
-cross-home selection, evidence gaps, and exit-code semantics.
-
-### Team runtime
-
-Use the team runtime when you specifically need durable tmux/worktree coordination, not as the default way to begin using OMX. In Codex App or plain outside-tmux sessions, treat `omx team` as a tmux-runtime shell surface rather than a directly available in-app workflow; launch OMX CLI from shell first if you actually want team execution.
-
-When Team runs inside an Ultragoal story, Ultragoal remains leader-owned state: workers report checkpoint-ready evidence upward instead of mutating `.omx/ultragoal` directly. Team startup tolerates stale or malformed Ultragoal artifacts for unrelated work, but explicitly Ultragoal-linked Team launches stay fail-closed. Team startup also writes `.omx/state/team/<team-name>/preflight-context.json` so large Team runs can be resumed after compaction with the original task, worker split, Ultragoal context, and verification checklist.
-
-For very small atomic work, Team may cap implicit fanout to one worker and print an over-orchestration warning; pass an explicit worker count only when the extra coordination cost is intentional.
-
-```bash
-omx team 3:executor "fix the failing tests with verification"
-omx team status <team-name>
-omx team resume <team-name>
-omx team shutdown <team-name>
-```
-
-`omx team status [<team-name>] [--json]` only observes existing state, so it can
-run against a read-only OMX root. It does not reclaim expired claims, deliver
-mailbox messages, integrate worker commits, or update runtime state. Without a
-team name, status resolves only a unique team belonging to the current leader
-session; provide an explicit name when no matching context is available.
-
-`omx tmux-hook status` is also observational. If hook configuration is missing,
-it reports that condition without creating files; use `omx tmux-hook init` to
-initialize configuration explicitly.
-
-
-### Setup, doctor, and HUD
-
-These are operator/support surfaces:
-- Codex plugin marketplace install/discovery can cache the plugin under `${CODEX_HOME:-~/.codex}/plugins/cache/$MARKETPLACE_NAME/oh-my-codex/$VERSION/` (local installs may use `local` as the version identifier); that packaged plugin includes plugin-scoped companion metadata for official Codex lifecycle hooks, optional MCP compatibility servers, and apps (MCP/apps disabled by default), so it is still paired with the installed `omx` CLI for runtime execution
-- Scoped setup installs prompts, skills, AGENTS scaffolding, `.codex/config.toml`, and (for legacy installs or older Codex without `plugin_hooks`) OMX-managed native Codex hooks in `.codex/hooks.json`
-  - setup refresh preserves non-OMX hook entries in `.codex/hooks.json` and only rewrites OMX-managed wrappers
-  - plugin setup keeps `AGENTS.md` as persistent durable guidance even though bundled skills/hooks come from the plugin cache; `omx doctor` treats a missing persistent scope `AGENTS.md` in plugin mode as a failed check because the session-scoped AGENTS file would otherwise contain only runtime overlay guidance
-  - `omx setup --merge-agents` preserves existing project `AGENTS.md` guidance while inserting or refreshing generated OMX sections between `<!-- OMX:AGENTS:START -->` / `<!-- OMX:AGENTS:END -->`; `--no-merge-agents` records an explicit contextual non-merge choice, and `--clear-merge-agents-policy` always removes the recorded choice and cannot combine with a set selector. The policy is stored per working root (even for user scope), replayed by immediate and deferred updates only when its saved scope is valid and matches, and is never a force/default policy.
-  - `omx uninstall` removes OMX-managed wrappers from `.codex/hooks.json` but keeps the file when user hooks remain
-- `omx update` checks npm immediately, installs the newest global OMX build, then reruns the same interactive setup refresh path
-- launch-time update checks are throttled and prompt by default; use `OMX_AUTO_UPDATE=0` to disable them or `OMX_AUTO_UPDATE=defer` to schedule deferred updates without a prompt
-- fresh OMX setup defaults to `gpt-6-astra` across frontier, standard, and spark/fast agents, with the same role reasoning defaults; existing user model configuration and explicit overrides are preserved
-- `.omx-config.json` model/env routing is documented in [the model/env routing reference](./docs/reference/omx-config-schema-routing.md); only edit keys supported by your installed OMX version
-- `omx doctor` verifies the install when something seems wrong; it does not prove that the active Codex profile can make an authenticated model call
-- `omx hud --watch` is a monitoring/status surface, not the primary user workflow
-- Active session teams show their name and worker count beside the OMX version (for example, `[OMX#0.21.4] team:checkout (3 workers) | repo/branch`) in every HUD preset, before long repository labels. When ultragoal is active, the combined ultragoal/team summary also takes priority over repository labels and other modes. Team discovery remains session-scoped; this does not show teams from other sessions or change when team startup publishes active state.
-- Below the summary, each team agent gets a live-refreshing row with its name, last reported state (`working`, `idle`, `blocked`, `done`, `failed`, `draining`, or `unknown`), current task ID, role, tmux pane ID, and update age when available. Columns stay aligned across different name lengths and missing fields; `working` and `done` are green, while `blocked` and `failed` are yellow. The HUD grows to fit the roster and shrinks after the team stops. Missing or malformed status files display `unknown`; a reported `working` state is not a process-liveness check. Membership and status are read without modifying team files.
-- GitGuardex finish progress is opt-in. Add `"guardex": { "enabled": true }` to the project-local `.omx/hud-config.json` to show `gx:<step>/<total> <phase>`; running review/autofix phases animate in the HUD. OMX does not read Guardex state when this flag is absent or false.
-
-Tmux roster height is bounded by live window and leader/HUD geometry, reserving at least half of their shared rows for the leader. Workers that do not fit are represented by a `+N workers` overflow row. The watch loop remeasures after resizing; unknown geometry keeps the HUD compact rather than expanding it unchecked.
-
-For non-team sessions, native Codex hooks are now the canonical lifecycle surface:
-- `plugins/oh-my-codex/hooks/hooks.json` = official plugin-scoped hook registrations for plugin installs
-- `.codex/hooks.json` = legacy/fallback native Codex hook registrations preserved for legacy installs and older Codex versions
-- `.omx/hooks/*.mjs` = OMX plugin hooks
-- `omx tmux-hook` / notify-hook / derived watcher = tmux + runtime fallback paths
-
-See [Codex native hook mapping](./docs/codex-native-hooks.md) for the current native / fallback matrix.
-
-
-### Troubleshooting false-green readiness
-
-A green `omx doctor` means the install and local runtime wiring look sane. If real execution still fails, check the environment Codex actually uses:
-
-- Run `codex login status` and `omx exec --skip-git-repo-check -C . "Reply with exactly OMX-EXEC-OK"` from the same shell/profile that will launch OMX.
-- In custom HOME, profile, container, or service shells, confirm the active `~/.codex` (or `CODEX_HOME`) is the one with the expected auth and config. Do not assume your normal user `~/.codex` is visible there.
-- If you depend on a local OpenAI-compatible proxy, confirm the active `~/.codex/config.toml` includes the expected `openai_base_url`; otherwise a proxy-issued key can be sent to the default endpoint and fail with `401 Unauthorized`, `Missing bearer or basic authentication in header`, or `Incorrect API key provided`.
-- If `omx doctor --team` or resume reports a stale team such as `resume_blocker` or a missing tmux session, clean the dead runtime state before retrying:
-
-```bash
-omx team shutdown <team-name> --force --confirm-issues
-omx cancel
-omx doctor --team
-```
-
-Only use the forced team shutdown for a team you have confirmed is dead or intentionally abandoned.
-
-If `Shift+Enter` still submits instead of inserting a newline inside an OMX-managed tmux session, see [Troubleshooting execution readiness](./docs/troubleshooting.md#shiftenter-submits-instead-of-inserting-a-newline-in-tmux-backed-omx-sessions). Current OMX already enables tmux extended-key forwarding around its own Codex launch paths, so a persistent failure is usually a tmux terminal-capability/discoverability problem rather than a net-new OMX feature gap.
-
-### Sparkshell
-
-- `omx sparkshell <command>` is for shell-native inspection and bounded verification
-- for read-only repository lookups, use normal Codex repository inspection tools/subagents (the deprecated `omx explore` command has been removed)
-- primary and fallback Sparkshell summary models both default to `gpt-6-astra`; set `OMX_SPARKSHELL_FALLBACK_MODEL` to a different model to enable a distinct fallback
-- sparkshell env overrides are intentionally narrow: `OMX_SPARKSHELL_BIN` selects a native sidecar path, `OMX_SPARKSHELL_MODEL` selects the primary summary model, `OMX_SPARKSHELL_FALLBACK_MODEL` selects the retry model, `OMX_SPARKSHELL_MODEL_INSTRUCTIONS_FILE` selects summary instructions, and `OMX_SPARKSHELL_SUMMARY_TIMEOUT_MS` controls the local API summary timeout
-
-Examples:
-
-```bash
-omx sparkshell git status
-omx sparkshell --tmux-pane %12 --tail-lines 400
-```
-
-### Wiki
-
-- `omx wiki` is the CLI-first JSON surface for wiki operations; `omx_wiki` MCP is explicit compatibility only
-- wiki data lives as repository project knowledge under `omx_wiki/`
-- the wiki is markdown-first and search-first, not vector-first
-
-Examples:
-
-```bash
-omx wiki list --json
-omx wiki query --input '{"query":"session-start lifecycle"}' --json
-omx wiki lint --json
-omx wiki refresh --json
-```
-
-### Platform notes for team mode
-
-`omx team` works best on macOS/Linux with `tmux`.
-Native Windows remains a secondary path, and WSL2 is generally the better choice if you want a Windows-hosted setup.
-On native Windows, OMX accepts `psmux` as the tmux-compatible binary for the existing tmux-backed paths it already uses.
-
-| Platform | Install |
-| --- | --- |
-| macOS | `brew install tmux` |
-| Ubuntu/Debian | `sudo apt install tmux` |
-| Fedora | `sudo dnf install tmux` |
-| Arch | `sudo pacman -S tmux` |
-| Windows | `winget install psmux` |
-| Windows (WSL2) | `sudo apt install tmux` |
-
-## Known issues
-
-### Intel Mac: high `syspolicyd` / `trustd` CPU during startup
-
-On some Intel Macs, OMX startup — especially with `--madmax --high` — can spike `syspolicyd` / `trustd` CPU usage while macOS Gatekeeper validates many concurrent process launches.
-
-If this happens, try:
-- `xattr -dr com.apple.quarantine $(which omx)`
-- adding your terminal app to the Developer Tools allowlist in macOS Security settings
-- using lower concurrency (for example, avoid `--madmax --high`)
-
-## Documentation
-
-- [Getting Started](./docs/getting-started.html)
-- [Demo guide](./DEMO.md)
-- [Wiki feature](./docs/wiki-feature.md)
-- [Agent catalog](./docs/agents.html)
-- [Skills reference](./docs/skills.html)
-- [Codex native hook mapping](./docs/codex-native-hooks.md)
-- [GitHub / PR / package identity pipeline](./docs/pipeline/github-pr-package-identity.md)
-- [Integrations](./docs/integrations.html)
-- [Troubleshooting execution readiness](./docs/troubleshooting.md)
-- [OpenClaw / notification gateway guide](./docs/openclaw-integration.md)
-- [Contributing](./CONTRIBUTING.md)
-- [Changelog](./CHANGELOG.md)
-
-## Languages
-
-- [English](./README.md)
-- [한국어](./docs/readme/README.ko.md)
-- [日本語](./docs/readme/README.ja.md)
-- [简体中文](./docs/readme/README.zh.md)
-- [繁體中文](./docs/readme/README.zh-TW.md)
-- [Tiếng Việt](./docs/readme/README.vi.md)
-- [Español](./docs/readme/README.es.md)
-- [Português](./docs/readme/README.pt.md)
-- [Русский](./docs/readme/README.ru.md)
-- [Türkçe](./docs/readme/README.tr.md)
-- [Deutsch](./docs/readme/README.de.md)
-- [Français](./docs/readme/README.fr.md)
-- [Italiano](./docs/readme/README.it.md)
-- [Ελληνικά](./docs/readme/README.el.md)
-- [Polski](./docs/readme/README.pl.md)
-- [Українська](./docs/readme/README.uk.md)
-- [Bahasa Indonesia](./docs/readme/README.id.md)
-
-## Contributors
-
-| Role | Name | GitHub |
-| --- | --- | --- |
-| Creator & Lead | Yeachan Heo | [@Yeachan-Heo](https://github.com/Yeachan-Heo) |
-| Maintainer | Doyun Ha | [@HaD0Yun](https://github.com/HaD0Yun) |
-| Maintainer | Valeriy Pavlovich | [@iqdoctor](https://github.com/iqdoctor) |
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-codex&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-codex&type=date&legend=top-left)
-
-## License
-
-MIT
-
-## GEO visibility benchmark
-
-OmX includes a [`geobench`](https://github.com/NomaDamas/geobench) product spec for measuring LLM hit rate, MRR, share of voice, and citations.
-
-- Spec: [`geobench/oh-my-codex.yaml`](geobench/oh-my-codex.yaml)
-- Runbook: [`docs/geobench.md`](docs/geobench.md)
-
-</details>
+자세한 검증 결과와 미검증 항목은 [검증 기록](docs/VALIDATION.md), 설정 상세는
+[설정 계약](docs/CONFIGURATION.md), 실행 구조는 [아키텍처](docs/ARCHITECTURE.md)를 참조하세요.
+
+Git worktree는 작업 충돌을 격리하지만 OS 보안 sandbox는 아닙니다. workflow 명령, 테스트 코드와
+사용자 command provider는 신뢰된 코드로 취급합니다. 신뢰할 수 없는 저장소는 컨테이너/격리 runner에서
+실행해야 합니다. Codex는 read-only sandbox로 호출하고 Claude는 도구를 비활성화하지만,
+호스트의 인증·설정·확장 기능에 대한 보안 통제는 해당 CLI와 실행 환경의 책임입니다.
+로그의 비밀 패턴 제거는 최선 노력이며 완전한 DLP가 아닙니다. 입력에 비밀값을 넣지 마세요.
+
+현재 파일 생성·수정은 지원하며 파일 삭제·바이너리 산출물·스트리밍 UI는 지원하지 않습니다.
+리뷰 결함은 `repair`로 다시 개발 작업에 연결합니다. 실제 운영 배포의 적합성은 프로젝트별
+배포 스크립트, 대상 환경과 별도 운영 검증에 달려 있습니다.

@@ -1,9 +1,7 @@
 name: SDLC Agent
 on:
   push:
-    paths: ['sdlc-agent/**', '.github/workflows/sdlc-agent.yml']
   pull_request:
-    paths: ['sdlc-agent/**', '.github/workflows/sdlc-agent.yml']
 permissions:
   contents: read
 jobs:
@@ -12,9 +10,6 @@ jobs:
     strategy:
       matrix:
         python: ['3.11', '3.12', '3.13']
-    defaults:
-      run:
-        working-directory: sdlc-agent
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
