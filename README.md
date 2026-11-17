@@ -24,7 +24,7 @@ Codex의 명명된 역할을 사용하려면 `adapters/codex/agents/*.toml`을 �
 | scripts/ | 배포 파일 동기화·검증 보조 작업 |
 | docs/ | 구조·전환·검증·외부 연동 설명 |
 
-[설계와 제한](docs/ARCHITECTURE.md) · [검증](docs/VALIDATION.md) · [MCP](docs/MCP.md)
+[개발가이드](docs/DEVELOPER_GUIDE.md) · [폴더·소스 구조](docs/SOURCE_STRUCTURE.md) · [설계와 제한](docs/ARCHITECTURE.md) · [검증](docs/VALIDATION.md) · [MCP](docs/MCP.md)
 
 개발 검증: `python3 -m unittest discover -s tests -v`.
 Python은 저장소 유지보수 테스트에만 사용하며 플러그인 사용에는 필요하지 않습니다. 훅에는 sh가 필요합니다.
