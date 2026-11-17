@@ -15,3 +15,5 @@ Run the workflow in the current host session using its native file, terminal and
 6. On failure, record the observed cause, fix the affected work, rerun relevant checks and review the resulting diff. Avoid repeated identical attempts; if no progress is possible, report the concrete blocker and checkpoint.
 7. Deployment is optional and requires an identified target and authorization. If the request only concerns source development, complete after tests and review. Do not leave ordinary development waiting for an unspecified deployment.
 8. Finish with changed files, requirement coverage, actual checks, unresolved limitations, and the checkpoint path. Do not claim runtime-enforced isolation, automatic rollback, SQLite resume or token metrics: this plugin relies on host permissions and explicit recorded evidence.
+
+When requirements, unfamiliar APIs, design decisions or repeated failures need evidence, load sibling search-wiki/SKILL.md and include cited findings in the task handoff. For isolated parallel edits, integration or cleanup, follow sibling manage-worktrees/SKILL.md before Git mutations.

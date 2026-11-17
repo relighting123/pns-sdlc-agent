@@ -233,3 +233,7 @@ Claude Code에서는 지원 버전에서 `claude --plugin-dir ./plugins/claude`�
 - [아키텍처와 기능 경계](ARCHITECTURE.md)
 - [MCP 연동 기준](MCP.md)
 - [검증 범위](VALIDATION.md)
+
+[위키 검색·워크트리 스킬 안내](WIKI_WORKTREES.md) — 공통 스킬은 총 9개이며 두 호스트에 동일하게 배포됩니다.
+
+- [에이전트·툴·스킬 추가 개발 체크리스트](EXTENSION_CHECKLIST.md)

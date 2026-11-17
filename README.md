@@ -28,3 +28,5 @@ Codex의 명명된 역할을 사용하려면 `adapters/codex/agents/*.toml`을 �
 
 개발 검증: `python3 -m unittest discover -s tests -v`.
 Python은 저장소 유지보수 테스트에만 사용하며 플러그인 사용에는 필요하지 않습니다. 훅에는 sh가 필요합니다.
+
+[위키 검색·워크트리 스킬 안내](docs/WIKI_WORKTREES.md) — 공통 스킬은 총 9개이며 두 호스트에 동일하게 배포됩니다.

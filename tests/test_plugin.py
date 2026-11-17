@@ -3,7 +3,7 @@ R = pathlib.Path(__file__).resolve().parents[1]
 class PluginTests(unittest.TestCase):
     def test_packages_are_complete(self):
         originals = list((R/'skills').glob('*/SKILL.md'))
-        self.assertEqual(len(originals), 7)
+        self.assertEqual(len(originals), 9)
         for host in ('codex','claude'):
             root=R/'plugins'/host
             manifest=json.loads((root/('.codex-plugin' if host=='codex' else '.claude-plugin')/'plugin.json').read_text())
