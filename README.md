@@ -1,5 +1,7 @@
 # oh-my-codex (OMX)
 
+**SDLC Agent** · Run requirements analysis, design, implementation, verification and deployment with Codex or Claude Code. [Workflow, setup and configuration](plugins/sdlc-agent/README.md).
+
 <p align="center">
   <img src="https://yeachan-heo.github.io/oh-my-codex-website/omx-character-nobg.png" alt="oh-my-codex character" width="280">
   <br>
