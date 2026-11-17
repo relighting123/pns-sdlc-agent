@@ -1,3 +1,28 @@
+# SDLC Agent
+
+범용 AI 개발 워크플로: 요구사항 분석 → 설계 → 구현 → 테스트 → 리뷰 → 배포.
+
+**새 실행 패키지:** [sdlc-agent/README.md](sdlc-agent/README.md)
+
+**구조 설명:** [아키텍처](sdlc-agent/docs/ARCHITECTURE.md) · [설정 계약](sdlc-agent/docs/CONFIGURATION.md) · [검증 기록](sdlc-agent/docs/VALIDATION.md)
+
+```bash
+python3 -m pip install ./sdlc-agent
+sdlc-agent doctor
+sdlc-agent --repo /path/to/project init --goal "구현할 기능과 수용 기준"
+```
+
+Python 런타임은 독립 세션·Git worktree, DAG 작업 배정, 실행 체크포인트, 수정 재실행,
+토큰 입력 예산·캐시·사용량 측정, 실제 테스트 실행 및 배포·상태 확인·롤백을 구현합니다.
+Codex, Claude Code, 사용자 command 어댑터를 지원하며 MCP 설치는 필요하지 않습니다.
+설치 후 생성되는 workflow의 소스 경로·테스트·배포 명령을 대상 프로젝트에 맞춰 설정하세요.
+
+기존 포크의 TypeScript/Rust 코드는 보존되어 있습니다. 새 Python 패키지는 아래 upstream
+프로젝트의 npm 설치·브랜딩·런타임에 의존하지 않습니다. 기존 라이선스와 저작권 고지는 유지합니다.
+
+<details>
+<summary>기존 upstream 프로젝트 문서</summary>
+
 # oh-my-codex (OMX)
 
 <p align="center">
@@ -597,3 +622,5 @@ OmX includes a [`geobench`](https://github.com/NomaDamas/geobench) product spec 
 
 - Spec: [`geobench/oh-my-codex.yaml`](geobench/oh-my-codex.yaml)
 - Runbook: [`docs/geobench.md`](docs/geobench.md)
+
+</details>
