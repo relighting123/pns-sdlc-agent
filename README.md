@@ -6,7 +6,7 @@
 
 | 경로 | 역할 |
 |---|---|
-| skills/ | SDLC 단계·워크트리·위키 검색 스킬 10개 |
+| skills/ | SDLC 단계·워크트리·위키 검색 스킬 15개 |
 | agents/ | Claude 서브에이전트 정의 6개 |
 | .codex/agents/ | Codex 프로젝트 역할 설정 6개 |
 | hooks/ | 공통 SessionStart 안내와 이벤트 설정 |
@@ -33,4 +33,6 @@ skills/ 원본을 직접 수정합니다. 호스트별 에이전트 정의는 ag
 
 [개발가이드](docs/DEVELOPER_GUIDE.md) · [소스 구조](docs/SOURCE_STRUCTURE.md) · [추가 개발 체크리스트](docs/EXTENSION_CHECKLIST.md) · [위키·워크트리](docs/WIKI_WORKTREES.md)
 
-Oracle 조회 공용 스킬 `query-oracle`을 추가했습니다. [설치·공통 지식·검증 범위](docs/ORACLE_SKILL.md)를 확인하세요. 전체 스킬은 10개이며 접속 프로필과 인증값은 플러그인 밖에서 관리합니다.
+Oracle 조회 공용 스킬 `read-oracle-data`을 추가했습니다. [설치·공통 지식·검증 범위](docs/ORACLE_SKILL.md)를 확인하세요. 전체 스킬은 15개이며 접속 프로필과 인증값은 플러그인 밖에서 관리합니다.
+
+공용 데이터 연동: Oracle·iFlow·Cube의 읽기/변경 스킬을 분리하고 shared/python 클라이언트를 공유합니다. [설정과 예제](docs/DATA_ACCESS.md) · [용어·이름 규칙](docs/NAMING.md). iFlow/Cube 실제 API 명세는 사내 설정으로 등록해야 합니다.

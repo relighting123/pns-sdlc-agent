@@ -2,16 +2,16 @@
 
 ## 설치
 
-사내망 접근이 가능한 실행 PC/서버에서 Python 3.11 이상과 scripts/requirements.txt의 고정 드라이버를 설치한다. 사내 패키지 저장소나 승인된 오프라인 wheel을 사용할 수 있다. requirements.txt는 DB 도구의 의존성만 선언한다.
+사내망 접근이 가능한 실행 PC/서버에서 Python 3.11 이상과 shared/python/requirements.txt의 고정 드라이버를 설치한다. 사내 패키지 저장소나 승인된 오프라인 wheel을 사용할 수 있다. requirements.txt는 DB 도구의 의존성만 선언한다.
 
 1. assets/profiles.example.json과 queries.example.json을 플러그인 외부의 운영자 관리 디렉터리로 복사한다.
 2. 실제 DB마다 연결 ID와 mode를 설정한다. queries_file은 외부 쿼리 파일의 절대 경로다. 등록 SQL은 코드와 동일하게 검토·관리한다.
 3. dsn_env, user_env, password_env가 가리키는 환경변수를 사내 자격증명 관리 절차로 주입한다. 값 자체를 커맨드라인·Git·MD에 기록하지 않는다.
-4. ORACLE_QUERY_CONFIG를 프로필 파일 경로로 설정한다. 호스트가 해당 환경을 상속하는지 확인한다.
+4. ORACLE_ACCESS_CONFIG를 프로필 파일 경로로 설정한다. 호스트가 해당 환경을 상속하는지 확인한다.
 5. --help 확인 뒤 check를 실행한다. check도 실제 연결하며 SELECT 1 FROM dual을 실행한다.
 
 ```bash
-python /plugin/skills/query-oracle/scripts/query_executor.py --database development --request /protected/request.json
+python /plugin/skills/read-oracle-data/scripts/oracle_client.py --database development --request /protected/request.json
 ```
 
 환경에 따라 python3 명령을 사용한다. --request -는 표준 입력으로 JSON을 받는다. 스크립트는 설정이나 SQL을 자동 생성·수정하지 않는다.

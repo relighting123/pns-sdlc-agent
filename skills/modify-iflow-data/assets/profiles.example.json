@@ -1,0 +1,22 @@
+{
+  "profiles": {
+    "iflow-development": {
+      "service": "iflow",
+      "base_url_env": "IFLOW_BASE_URL",
+      "auth": {
+        "type": "bearer",
+        "token_env": "IFLOW_TOKEN"
+      },
+      "operations_file": "/absolute/operator-owned/iflow-operations.json",
+      "allowed_operations": [
+        "example.iflow.records.modify"
+      ],
+      "allow_write": false,
+      "max_read_attempts": 2,
+      "max_response_bytes": 32000,
+      "max_request_bytes": 32000,
+      "connect_timeout_s": 5,
+      "read_timeout_s": 15
+    }
+  }
+}

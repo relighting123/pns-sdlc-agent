@@ -1,0 +1,6 @@
+{
+  "operation": "example.iflow.records.read",
+  "path": {
+    "record_id": "EXAMPLE-RECORD"
+  }
+}

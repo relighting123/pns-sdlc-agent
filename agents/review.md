@@ -10,4 +10,6 @@ Review requirements, design, changed source and actual test output. Report concr
 
 Return a concise handoff: requirement IDs, changed paths, actual checks, findings, blockers and next action. Stay within assigned paths. Do not delegate further unless requested.
 
-For database evidence, follow query-oracle references using Read and return an exact query request to the parent to execute; do not gain Bash merely for review.
+For database evidence, follow read-oracle-data references using Read and return an exact query request to the parent to execute; do not gain Bash merely for review.
+
+Shared data access: use read-oracle-data, read-iflow-data or read-cube-data only when needed. Modification uses the matching modify-*-data skill and requires a requested target/change and host authorization. Review returns requests to the parent instead of obtaining a shell.

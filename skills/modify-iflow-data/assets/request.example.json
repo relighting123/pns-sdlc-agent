@@ -1,0 +1,9 @@
+{
+  "operation": "example.iflow.records.modify",
+  "path": {
+    "record_id": "EXAMPLE-RECORD"
+  },
+  "body": {
+    "status": "EXAMPLE-STATUS"
+  }
+}

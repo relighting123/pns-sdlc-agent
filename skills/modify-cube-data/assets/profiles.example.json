@@ -1,0 +1,22 @@
+{
+  "profiles": {
+    "cube-development": {
+      "service": "cube",
+      "base_url_env": "CUBE_BASE_URL",
+      "auth": {
+        "type": "bearer",
+        "token_env": "CUBE_TOKEN"
+      },
+      "operations_file": "/absolute/operator-owned/cube-operations.json",
+      "allowed_operations": [
+        "example.cube.records.modify"
+      ],
+      "allow_write": false,
+      "max_read_attempts": 2,
+      "max_response_bytes": 32000,
+      "max_request_bytes": 32000,
+      "connect_timeout_s": 5,
+      "read_timeout_s": 15
+    }
+  }
+}
