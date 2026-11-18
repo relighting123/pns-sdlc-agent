@@ -1,0 +1,44 @@
+{
+  "example.iflow.records.read": {
+    "effect": "read",
+    "method": "GET",
+    "path": "/EXAMPLE-ONLY/records/{record_id}",
+    "request_schema": {
+      "type": "object",
+      "required": [
+        "path",
+        "query",
+        "body"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "object",
+          "required": [
+            "record_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "record_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        },
+        "query": {
+          "type": "object",
+          "additionalProperties": false
+        },
+        "body": {
+          "type": "null"
+        }
+      }
+    },
+    "response_fields": [
+      "id",
+      "status"
+    ],
+    "retry_safe": true
+  }
+}

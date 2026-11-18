@@ -222,3 +222,5 @@ Claude Code에서는 지원 버전에서 `claude --plugin-dir ./저장소 루트
 [위키 검색·워크트리 스킬 안내](WIKI_WORKTREES.md) — 공통 스킬은 총 9개이며 두 호스트에 동일하게 배포됩니다.
 
 - [에이전트·툴·스킬 추가 개발 체크리스트](EXTENSION_CHECKLIST.md)
+
+읽기·변경 스킬과 공통 import 구조는 [공용 데이터 접근](DATA_ACCESS.md), 용어와 이름은 [명명 규칙](NAMING.md)를 따른다.

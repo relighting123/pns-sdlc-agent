@@ -1,0 +1,9 @@
+{
+  "operation": "example.update-status",
+  "binds": {
+    "id": "EXAMPLE-ID",
+    "old_status": "OLD",
+    "new_status": "NEW"
+  },
+  "expected_rows": 1
+}

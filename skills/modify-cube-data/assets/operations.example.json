@@ -1,0 +1,54 @@
+{
+  "example.cube.records.modify": {
+    "effect": "write",
+    "method": "PATCH",
+    "path": "/EXAMPLE-ONLY/records/{record_id}",
+    "request_schema": {
+      "type": "object",
+      "required": [
+        "path",
+        "query",
+        "body"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "object",
+          "required": [
+            "record_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "record_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        },
+        "query": {
+          "type": "object",
+          "additionalProperties": false
+        },
+        "body": {
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string",
+              "maxLength": 50
+            }
+          }
+        }
+      }
+    },
+    "response_fields": [
+      "id",
+      "status"
+    ],
+    "retry_safe": false
+  }
+}

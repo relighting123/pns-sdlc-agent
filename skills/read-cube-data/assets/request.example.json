@@ -1,0 +1,6 @@
+{
+  "operation": "example.cube.records.read",
+  "path": {
+    "record_id": "EXAMPLE-RECORD"
+  }
+}

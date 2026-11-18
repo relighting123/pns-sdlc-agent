@@ -1,44 +1,14 @@
-"""Bounded Oracle query CLI. Profiles and approved SQL live outside the plugin."""
-import argparse
+"""Registered read execution with bounded output."""
+import json
+import re
+import time
 import base64
 import datetime
 import decimal
-import importlib
-import json
-import os
 from pathlib import Path
-import re
-import sys
-import time
-
-
-class QueryError(Exception):
-    pass
-
-
-def read_json(path):
-    with Path(path).expanduser().open(encoding='utf-8') as stream:
-        return json.load(stream)
-
-
-def integer(value, low, high, field):
-    if type(value) is not int or not low <= value <= high:
-        raise QueryError('Invalid limit: ' + field)
-    return value
-
-
-def load_profile(config, database):
-    profiles = read_json(config).get('databases', {})
-    if database not in profiles:
-        raise QueryError('Unknown database ID')
-    profile = profiles[database]
-    if profile.get('mode') not in ('thin', 'thick'):
-        raise QueryError('Profile mode must be thin or thick')
-    for key in ('dsn_env', 'user_env', 'password_env'):
-        if not isinstance(profile.get(key), str) or not os.environ.get(profile[key]):
-            raise QueryError('Missing profile credential environment: ' + key)
-    return profile
-
+from .common import QueryError, read_json, integer
+from .connections import connect, load_profile
+from execution_policy import require_effect
 
 def query_spec(profile, request):
     action = request.get('action')
@@ -69,6 +39,7 @@ def query_spec(profile, request):
     spec = catalog.get(name)
     if not isinstance(spec, dict) or not isinstance(spec.get('sql'), str):
         raise QueryError('Missing registered query')
+    require_effect(spec, 'read')
     expected = spec.get('binds', [])
     if set(binds) != set(expected):
         raise QueryError('Bind keys do not match registered query')
@@ -77,30 +48,6 @@ def query_spec(profile, request):
     if not re.match(r'(?is)^SELECT\b', sql) or ';' in sql or re.search(r'(?is)\bFOR\s+UPDATE\b', sql):
         raise QueryError('Registered SQL must be one SELECT without FOR UPDATE')
     return sql, binds, name
-
-
-def connect(profile):
-    driver = importlib.import_module('oracledb')
-    if profile['mode'] == 'thick':
-        kwargs = {}
-        for key in ('lib_dir', 'config_dir'):
-            if profile.get(key):
-                kwargs[key] = profile[key]
-        driver.init_oracle_client(**kwargs)
-    kwargs = dict(dsn=os.environ[profile['dsn_env']], user=os.environ[profile['user_env']],
-                  password=os.environ[profile['password_env']])
-    if profile.get('config_dir'):
-        kwargs['config_dir'] = profile['config_dir']
-    conn = driver.connect(**kwargs)
-    try:
-        if bool(conn.thin) != (profile['mode'] == 'thin'):
-            raise QueryError('Driver mode differs from requested profile')
-        conn.autocommit = False
-        conn.call_timeout = integer(profile.get('call_timeout_ms', 15000), 1, 120000, 'call_timeout_ms')
-        return conn
-    except Exception:
-        conn.close()
-        raise
 
 
 def cell(value):
@@ -178,33 +125,3 @@ def run_batch(profile, requests, connection_factory=connect):
             conn.rollback()
         finally:
             conn.close()
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--config', default=os.environ.get('ORACLE_QUERY_CONFIG'))
-    parser.add_argument('--database', required=True)
-    parser.add_argument('--request', required=True, help='JSON request file, or - for stdin')
-    args = parser.parse_args()
-    try:
-        if not args.config:
-            raise QueryError('Set --config or ORACLE_QUERY_CONFIG')
-        profile = load_profile(args.config, args.database)
-        request = json.load(sys.stdin) if args.request == '-' else read_json(args.request)
-        result = run_batch(profile, request)
-        result['database'] = args.database
-        print(json.dumps(result, ensure_ascii=False, allow_nan=False, separators=(',', ':')))
-        return 0
-    except QueryError as error:
-        print(json.dumps({'ok': False, 'error': 'validation', 'message': str(error)}))
-    except Exception as error:
-        # Raw driver messages may contain hosts, SQL or bind values.
-        code = getattr(error.args[0], 'full_code', None) if error.args else None
-        code = code if isinstance(code, str) and re.fullmatch(r'(ORA|DPY|DPI)-\d+', code) else None
-        print(json.dumps({'ok': False, 'error': 'execution', 'code': code,
-                          'message': 'Check dependencies, profile, connectivity, DB permissions and registered SQL locally.'}))
-    return 1
-
-
-if __name__ == '__main__':
-    sys.exit(main())

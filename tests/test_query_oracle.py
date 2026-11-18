@@ -7,10 +7,10 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-PATH = ROOT/'skills/query-oracle/scripts/query_executor.py'
-spec = importlib.util.spec_from_file_location('query_executor', PATH)
-executor = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(executor)
+import sys
+sys.path.insert(0, str(ROOT/'shared/python'))
+from oracle_client import query_executor as executor
+
 
 
 class Cursor:
@@ -57,7 +57,7 @@ class OracleTests(unittest.TestCase):
     def test_catalog_binds_are_not_interpolated(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/'queries.json'
-            path.write_text(json.dumps({'lookup':{'sql':'SELECT :value FROM dual','binds':['value']}}))
+            path.write_text(json.dumps({'lookup':{'effect':'read','sql':'SELECT :value FROM dual','binds':['value']}}))
             profile={'queries_file':str(path),'allowed_queries':['lookup']}
             value="x' OR '1'='1"
             sql, binds, _ = executor.query_spec(profile,{'action':'query','query':'lookup','binds':{'value':value}})
@@ -92,9 +92,9 @@ class OracleTests(unittest.TestCase):
             with self.assertRaises(executor.QueryError): executor.load_profile(config,'missing')
 
     def test_skill_name_and_knowledge_links(self):
-        skill=ROOT/'skills/query-oracle'
+        skill=ROOT/'skills/read-oracle-data'
         body=(skill/'SKILL.md').read_text()
-        self.assertIn('name: query-oracle',body)
+        self.assertIn('name: read-oracle-data',body)
         for filename in ['execution.md','connections.md','query-rules.md']:
             self.assertTrue((skill/'references'/filename).is_file())
             self.assertIn('references/'+filename,body)

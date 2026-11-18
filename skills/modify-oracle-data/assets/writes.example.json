@@ -1,0 +1,11 @@
+{
+  "example.update-status": {
+    "effect": "write",
+    "sql": "UPDATE EXAMPLE_TABLE SET status = :new_status WHERE id = :id AND status = :old_status",
+    "binds": [
+      "id",
+      "old_status",
+      "new_status"
+    ]
+  }
+}

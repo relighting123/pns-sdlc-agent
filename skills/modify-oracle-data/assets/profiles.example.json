@@ -1,0 +1,17 @@
+{
+  "databases": {
+    "example-write": {
+      "mode": "thin",
+      "dsn_env": "ORACLE_WRITE_DSN",
+      "user_env": "ORACLE_WRITE_USER",
+      "password_env": "ORACLE_WRITE_PASSWORD",
+      "allow_write": false,
+      "allowed_writes": [
+        "example.update-status"
+      ],
+      "writes_file": "/absolute/operator-owned/writes.json",
+      "max_write_rows": 100,
+      "call_timeout_ms": 15000
+    }
+  }
+}
