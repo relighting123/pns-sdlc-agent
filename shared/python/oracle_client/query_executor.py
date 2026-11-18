@@ -8,6 +8,7 @@ import decimal
 from pathlib import Path
 from .common import QueryError, read_json, integer
 from .connections import connect, load_profile
+from execution_policy.local_role import authorize
 from execution_policy import require_effect
 
 def query_spec(profile, request):
@@ -78,6 +79,7 @@ def run_batch(profile, requests, connection_factory=connect):
         limit = integer(request.get('max_rows', max_rows), 1, max_rows, 'request.max_rows')
         prepared.append((spec, limit))
     start = time.perf_counter()
+    authorize(profile, "read")
     conn = connection_factory(profile)
     connected = time.perf_counter()
     results = []

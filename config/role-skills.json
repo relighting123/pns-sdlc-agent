@@ -1,0 +1,48 @@
+{
+  "plugin": "sdlc-agent",
+  "scope": "plugin-skill-exposure-only",
+  "roles": {
+    "requirements": {
+      "name": "sdlc-requirements",
+      "description": "Collect requirements and evidence using iFlow and Cube reads.",
+      "stage": "analyze-requirements",
+      "data_skills": ["read-iflow-data", "read-cube-data"],
+      "tools": ["Read", "Grep", "Glob", "Write", "Bash"]
+    },
+    "design": {
+      "name": "sdlc-design",
+      "description": "Design systems from supplied requirements and evidence.",
+      "stage": "design-system",
+      "data_skills": [],
+      "tools": ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
+    },
+    "develop": {
+      "name": "sdlc-develop",
+      "description": "Implement features using Oracle read evidence when needed.",
+      "stage": "implement-feature",
+      "data_skills": ["read-oracle-data"],
+      "tools": ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
+    },
+    "test": {
+      "name": "sdlc-test",
+      "description": "Verify changes using supplied requirements and actual tests.",
+      "stage": "verify-change",
+      "data_skills": [],
+      "tools": ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
+    },
+    "review": {
+      "name": "sdlc-review",
+      "description": "Review supplied changes and evidence without modifying implementation.",
+      "stage": "review-release",
+      "data_skills": [],
+      "tools": ["Read", "Grep", "Glob"]
+    },
+    "deploy": {
+      "name": "sdlc-deploy",
+      "description": "Deploy an authorized revision using project deployment instructions.",
+      "stage": "deploy-release",
+      "data_skills": [],
+      "tools": ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
+    }
+  }
+}
