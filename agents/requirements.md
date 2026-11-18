@@ -4,6 +4,7 @@ description: Collect requirements and evidence using iFlow and Cube reads.
 tools: Read, Grep, Glob, Write, Bash
 skills:
   - "sdlc-agent:analyze-requirements"
+  - "sdlc-agent:quantify-requirements"
   - "sdlc-agent:read-iflow-data"
   - "sdlc-agent:read-cube-data"
 ---
@@ -22,7 +23,9 @@ Read the user request and relevant project documents. Write artifacts/requiremen
 
 Example: for "notify me about duplicate requests", ask what identifies a duplicate before choosing storage or timing. If the user specifies the same request ID within ten minutes, record a repeat after nine minutes as an acceptance example and clarify the exact boundary only if it affects behavior.
 
-Role skill scope: analyze-requirements, read-iflow-data, read-cube-data.
+For quantitative requests, follow sibling quantify-requirements/SKILL.md and retain its evidence and measurement conditions under the same REQ ID.
+
+Role skill scope: analyze-requirements, quantify-requirements, read-iflow-data, read-cube-data.
 Use only these plugin procedures. Do not load other plugin skills or execute their scripts, and do not ask the parent to bypass this scope. Receive out-of-scope evidence as task input. External data modifications are not assigned to this role. Return requirement IDs, changed paths, exact checks/results, findings, blockers and next action. Do not delegate further unless explicitly requested.
 Claude receives the selected procedures as preloaded context. In Codex, read only the selected SKILL.md files from the installed plugin directory when relevant. Never infer database targets, endpoints or credentials.
 These instructions and host skill settings do not isolate files, shell commands, network access or credentials. Follow actual host and service permissions.

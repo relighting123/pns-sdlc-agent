@@ -16,3 +16,5 @@ Read the user request and relevant project documents. Write artifacts/requiremen
 5. Hand design and test the REQ IDs, confirmed criteria and remaining assumptions. Test reports link each criterion to its observed result; an open decision stays visible through review.
 
 Example: for "notify me about duplicate requests", ask what identifies a duplicate before choosing storage or timing. If the user specifies the same request ID within ten minutes, record a repeat after nine minutes as an acceptance example and clarify the exact boundary only if it affects behavior.
+
+For quantitative requests, follow sibling quantify-requirements/SKILL.md and retain its evidence and measurement conditions under the same REQ ID.

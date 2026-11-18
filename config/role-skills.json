@@ -6,7 +6,7 @@
       "name": "sdlc-requirements",
       "description": "Collect requirements and evidence using iFlow and Cube reads.",
       "stage": "analyze-requirements",
-      "data_skills": ["read-iflow-data", "read-cube-data"],
+      "data_skills": ["quantify-requirements", "read-iflow-data", "read-cube-data"],
       "tools": ["Read", "Grep", "Glob", "Write", "Bash"]
     },
     "design": {

@@ -3,7 +3,7 @@ R = pathlib.Path(__file__).resolve().parents[1]
 class PluginTests(unittest.TestCase):
     def test_packages_are_complete(self):
         originals = list((R/'skills').glob('*/SKILL.md'))
-        self.assertEqual(len(originals), 15)
+        self.assertEqual(len(originals), 16)
         for metadata in ('.codex-plugin', '.claude-plugin'):
             manifest=json.loads((R/metadata/'plugin.json').read_text())
             self.assertTrue((R/manifest.get('skills','./skills')).is_dir())
