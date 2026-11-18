@@ -1,6 +1,6 @@
 {
   "name": "sdlc-agent",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Host-native SDLC workflow; no separate runtime installation required",
   "author": {
     "name": "SDLC Agent contributors"

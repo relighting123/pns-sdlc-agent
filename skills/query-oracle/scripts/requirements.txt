@@ -1,0 +1,2 @@
+# Compatibility baseline; upgrade only after validating the database/client matrix.
+oracledb==3.4.2

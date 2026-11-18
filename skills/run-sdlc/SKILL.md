@@ -17,3 +17,5 @@ Run the workflow in the current host session using its native file, terminal and
 8. Finish with changed files, requirement coverage, actual checks, unresolved limitations, and the checkpoint path. Do not claim runtime-enforced isolation, automatic rollback, SQLite resume or token metrics: this plugin relies on host permissions and explicit recorded evidence.
 
 When requirements, unfamiliar APIs, design decisions or repeated failures need evidence, load sibling search-wiki/SKILL.md and include cited findings in the task handoff. For isolated parallel edits, integration or cleanup, follow sibling manage-worktrees/SKILL.md before Git mutations.
+
+For authorized Oracle data or schema evidence, load sibling query-oracle/SKILL.md. Share this capability across existing roles; a read-only reviewer returns query requests to the parent for execution.
