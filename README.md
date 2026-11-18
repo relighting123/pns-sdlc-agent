@@ -6,7 +6,7 @@
 
 | 경로 | 역할 |
 |---|---|
-| skills/ | SDLC 단계·워크트리·위키 검색 스킬 9개 |
+| skills/ | SDLC 단계·워크트리·위키 검색 스킬 10개 |
 | agents/ | Claude 서브에이전트 정의 6개 |
 | .codex/agents/ | Codex 프로젝트 역할 설정 6개 |
 | hooks/ | 공통 SessionStart 안내와 이벤트 설정 |
@@ -32,3 +32,5 @@ skills/ 원본을 직접 수정합니다. 호스트별 에이전트 정의는 ag
 `python3 -m unittest discover -s tests -v`로 구조를 검사합니다. Python은 개발 검증에만 사용됩니다.
 
 [개발가이드](docs/DEVELOPER_GUIDE.md) · [소스 구조](docs/SOURCE_STRUCTURE.md) · [추가 개발 체크리스트](docs/EXTENSION_CHECKLIST.md) · [위키·워크트리](docs/WIKI_WORKTREES.md)
+
+Oracle 조회 공용 스킬 `query-oracle`을 추가했습니다. [설치·공통 지식·검증 범위](docs/ORACLE_SKILL.md)를 확인하세요. 전체 스킬은 10개이며 접속 프로필과 인증값은 플러그인 밖에서 관리합니다.

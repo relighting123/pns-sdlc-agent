@@ -1,0 +1,4 @@
+[
+  {"action": "check"},
+  {"action": "query", "query": "database-clock", "binds": {}, "max_rows": 1}
+]

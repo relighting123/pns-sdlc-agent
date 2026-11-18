@@ -1,0 +1,25 @@
+{
+  "databases": {
+    "development": {
+      "mode": "thin",
+      "dsn_env": "COMPANY_DEV_DSN",
+      "user_env": "COMPANY_DEV_USER",
+      "password_env": "COMPANY_DEV_PASSWORD",
+      "metadata_owners": ["APP_READ"],
+      "queries_file": "/absolute/operator-owned/queries.json",
+      "allowed_queries": ["database-clock"],
+      "max_rows": 100,
+      "max_result_bytes": 32000,
+      "call_timeout_ms": 15000
+    },
+    "legacy": {
+      "mode": "thick",
+      "dsn_env": "COMPANY_LEGACY_DSN",
+      "user_env": "COMPANY_LEGACY_USER",
+      "password_env": "COMPANY_LEGACY_PASSWORD",
+      "metadata_owners": [],
+      "queries_file": "/absolute/operator-owned/queries.json",
+      "allowed_queries": ["database-clock"]
+    }
+  }
+}

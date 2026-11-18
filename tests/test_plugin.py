@@ -3,7 +3,7 @@ R = pathlib.Path(__file__).resolve().parents[1]
 class PluginTests(unittest.TestCase):
     def test_packages_are_complete(self):
         originals = list((R/'skills').glob('*/SKILL.md'))
-        self.assertEqual(len(originals), 9)
+        self.assertEqual(len(originals), 10)
         for metadata in ('.codex-plugin', '.claude-plugin'):
             manifest=json.loads((R/metadata/'plugin.json').read_text())
             self.assertTrue((R/manifest.get('skills','./skills')).is_dir())
@@ -29,6 +29,6 @@ class PluginTests(unittest.TestCase):
         self.assertFalse((R/'sdlc_agent').exists())
         self.assertFalse((R/'pyproject.toml').exists())
         for p in (R/'skills').rglob('*'):
-            if p.is_file():
+            if p.is_file() and p.suffix not in (".pyc",):
                 for obsolete in ('pip install', 'sdlc-agent run', 'scripts/sdlc.py', 'runtime is optional'):
                     self.assertNotIn(obsolete,p.read_text())

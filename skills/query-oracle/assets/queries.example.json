@@ -1,0 +1,6 @@
+{
+  "database-clock": {
+    "sql": "SELECT SYSDATE AS database_time FROM dual",
+    "binds": []
+  }
+}
