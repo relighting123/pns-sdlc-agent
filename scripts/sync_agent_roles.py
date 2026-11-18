@@ -23,7 +23,7 @@ def render(root=ROOT):
         instructions += ('Use only these plugin procedures. Do not load other plugin skills or execute their scripts, '
                          'and do not ask the parent to bypass this scope. Receive out-of-scope evidence as task input. '
                          'External data modifications are not assigned to this role. '
-                         'Return requirement IDs, changed paths, exact checks/results, findings, blockers and next action. '
+                         'Check the assigned output against its completion criteria before reporting. Return requirement IDs, changed paths, exact checks/results, findings, blockers and next action directly to the assigning orchestrator. '
                          'Do not delegate further unless explicitly requested.\n')
         if role['data_skills']:
             instructions += ('Claude receives the selected procedures as preloaded context. '

@@ -7,7 +7,7 @@
 ```mermaid
 flowchart TD
     U[사용자 요청] --> O[호스트의 주 에이전트]
-    O --> P[run-sdlc 스킬로 계획 및 배분]
+    O --> P[sdlc-orchestrator 스킬로 계획 및 배분]
     P --> W[서브에이전트 또는 주 에이전트 작업]
     W --> H[호스트 도구로 파일 수정·명령 실행]
     H --> V[담당 에이전트가 근거와 결과 보고]
@@ -16,7 +16,7 @@ flowchart TD
     Q --> R[통합, 필요 검사 재실행, 사용자 보고]
 ```
 
-호스트(Codex 또는 Claude Code)가 모델과 대화 루프, 파일·터미널 도구, 서브에이전트 실행을 제공합니다. 이 저장소에는 작업을 실제로 실행하는 별도 오케스트레이터 프로그램이 없습니다. 플러그인의 `run-sdlc` 스킬이 호스트에게 계획·배분·확인 절차를 안내합니다.
+호스트(Codex 또는 Claude Code)가 모델과 대화 루프, 파일·터미널 도구, 서브에이전트 실행을 제공합니다. 이 저장소에는 작업을 실제로 실행하는 별도 오케스트레이터 프로그램이 없습니다. 플러그인의 `sdlc-orchestrator` 스킬이 호스트에게 계획·배분·확인 절차를 안내합니다.
 
 ## 2. 작업 배분과 결과 검증
 
@@ -70,11 +70,11 @@ flowchart TD
 
 ### 4.1 스킬 파일 머리말
 
-예시: `skills/run-sdlc/SKILL.md`
+예시: `skills/sdlc-orchestrator/SKILL.md`
 
 ```yaml
 ---
-name: run-sdlc
+name: sdlc-orchestrator
 description: Use for end-to-end feature delivery, SDLC planning, implementation, testing, review, or resuming a feature in Codex or Claude.
 ---
 ```
@@ -192,7 +192,7 @@ skills/가 개발 원본이자 설치 파일이다. 복사 스크립트는 제�
 1. 보안 점검 절차를 `skills/security-review/SKILL.md`에 작성합니다.
 2. Codex TOML 역할을 `.codex/agents/sdlc-security.toml`에 추가합니다.
 3. Claude 역할 파일을 `agents/security.md`에 추가합니다.
-4. Codex와 Claude에서 해당 역할이 기존 `run-sdlc` 스킬로 배정되는지 지침을 연결합니다.
+4. Codex와 Claude에서 해당 역할이 기존 `sdlc-orchestrator` 스킬로 배정되는지 지침을 연결합니다.
 5. `git diff --check`로 두 배포 패키지에 새 스킬을 복사합니다.
 6. `tests/test_plugin.py`의 기대 스킬·역할 개수를 갱신하고 필요한 구조 검사를 추가합니다.
 7. `python -m unittest discover -s tests -v`를 실행하고 실제 호스트에서 설치·호출을 확인합니다.
