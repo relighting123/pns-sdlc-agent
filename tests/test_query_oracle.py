@@ -37,9 +37,16 @@ class Connection:
 
 
 class OracleTests(unittest.TestCase):
+    def setUp(self):
+        env = patch.dict(os.environ, {'SDLC_DATA_ROLE':'develop'})
+        env.start()
+        self.addCleanup(env.stop)
+        from execution_policy.local_role import principal
+        self.profile = {'mode':'thin','role_access':{'develop':{principal():['read']}}}
+
     def test_bound_rows_batch_connection_and_cleanup(self):
         conn = Connection([(1,), (2,), (3,)])
-        result = executor.run_batch({'mode':'thin', 'max_rows':2},
+        result = executor.run_batch({**self.profile, 'max_rows':2},
                                     [{'action':'check'}, {'action':'check'}], lambda _:conn)
         self.assertEqual(conn.cur.commands[0][0], 'SET TRANSACTION READ ONLY')
         self.assertTrue(all(r['truncated'] for r in result['results']))
@@ -52,7 +59,7 @@ class OracleTests(unittest.TestCase):
                         {'action':'describe','owner':'SECRET','table':'T'},
                         {'action':'check','max_rows':999999}]:
             with self.assertRaises(executor.QueryError):
-                executor.run_batch({'mode':'thin'},[request], forbidden)
+                executor.run_batch(self.profile,[request], forbidden)
 
     def test_catalog_binds_are_not_interpolated(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -68,7 +75,7 @@ class OracleTests(unittest.TestCase):
 
     def test_data_budget_and_lob_omission(self):
         conn=Connection([('x'*600,)])
-        result=executor.run_batch({'mode':'thin','max_result_bytes':512},[{'action':'check'}],lambda _:conn)
+        result=executor.run_batch({**self.profile,'max_result_bytes':512},[{'action':'check'}],lambda _:conn)
         self.assertTrue(result['results'][0]['truncated'])
         self.assertEqual(result['results'][0]['rows'],[])
         class LOB:
@@ -80,7 +87,7 @@ class OracleTests(unittest.TestCase):
         def fail(*args): raise RuntimeError('failed')
         conn.cur.execute=fail
         with self.assertRaises(RuntimeError):
-            executor.run_batch({'mode':'thin'},[{'action':'check'}],lambda _:conn)
+            executor.run_batch(self.profile,[{'action':'check'}],lambda _:conn)
         self.assertTrue(conn.closed and conn.rolled_back)
 
     def test_profile_env_and_name(self):

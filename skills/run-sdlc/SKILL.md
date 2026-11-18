@@ -18,6 +18,4 @@ Run the workflow in the current host session using its native file, terminal and
 
 When requirements, unfamiliar APIs, design decisions or repeated failures need evidence, load sibling search-wiki/SKILL.md and include cited findings in the task handoff. For isolated parallel edits, integration or cleanup, follow sibling manage-worktrees/SKILL.md before Git mutations.
 
-For authorized Oracle data or schema evidence, load sibling read-oracle-data/SKILL.md. Share this capability across existing roles; a read-only reviewer returns query requests to the parent for execution.
-
-For external services choose read-iflow-data/read-cube-data for evidence and modify-iflow-data/modify-cube-data for authorized changes. Oracle changes use modify-oracle-data. Check the real effect of each registered operation; a POST can be a read. Never retry unknown write outcomes automatically.
+For external evidence, route iFlow/Cube reads to requirements and Oracle reads to development. Pass existing evidence to other roles. When an analyst returns an open question, ask the requester and send the answer back with the REQ ID. Use the assigned role as SDLC_DATA_ROLE for the individual client invocation. Data modifications require separate authorization and a matching local profile grant.

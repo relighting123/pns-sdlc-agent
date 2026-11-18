@@ -2,6 +2,7 @@
 import re
 import time
 from pathlib import Path
+from execution_policy.local_role import authorize
 from execution_policy import require_effect
 from .common import QueryError, integer, read_json
 from .connections import connect
@@ -32,6 +33,7 @@ def prepare(profile, request, apply=False):
         raise QueryError('Write bind keys do not match')
     maximum = integer(profile.get('max_write_rows', 100), 1, 10000, 'max_write_rows')
     expected = integer(request.get('expected_rows'), 0, maximum, 'expected_rows')
+    authorize(profile, "write")
     return name, sql, binds, expected
 
 

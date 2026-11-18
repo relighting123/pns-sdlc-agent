@@ -10,6 +10,7 @@ from urllib.parse import quote, urlsplit
 
 import httpx
 from jsonschema import Draft202012Validator
+from execution_policy.local_role import authorize
 from execution_policy import PolicyError, bounded_int, require_effect
 from execution_result import error_result
 
@@ -66,6 +67,7 @@ class HttpClient:
         spec = self.catalog.get(operation)
         if not isinstance(spec, dict):
             raise PolicyError('Unknown operation')
+        authorize(self.profile, effect)
         require_effect(spec, effect, self.profile.get('allow_write'), apply)
         method = spec.get('method', '').upper()
         if method not in ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'):
