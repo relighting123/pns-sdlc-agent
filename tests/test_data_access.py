@@ -11,6 +11,7 @@ import httpx
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'shared/python'))
+from execution_policy.local_role import principal
 from execution_policy import PolicyError
 from http_client import HttpClient
 from oracle_client.write_executor import run_write, CommitUnknown
@@ -28,11 +29,21 @@ def operation(effect='read', method='GET'):
 
 class HttpTests(unittest.TestCase):
     def setUp(self):
+        role = patch.dict(os.environ, {'SDLC_DATA_ROLE':'test'})
+        role.start()
+        self.addCleanup(role.stop)
         self.env=patch.dict(os.environ,{'TEST_HTTP_URL':'https://service.invalid','TEST_HTTP_TOKEN':'do-not-print'})
         self.env.start();self.addCleanup(self.env.stop)
-        self.profile={'base_url_env':'TEST_HTTP_URL','auth':{'type':'bearer','token_env':'TEST_HTTP_TOKEN'},
+        self.profile={'role_access':{'test':{principal():['read','write']}},'base_url_env':'TEST_HTTP_URL','auth':{'type':'bearer','token_env':'TEST_HTTP_TOKEN'},
                       'allowed_operations':['op'],'max_read_attempts':2,'allow_write':True}
         self.req={'operation':'op','path':{'id':'item'}}
+
+    def test_wrong_role_denied_before_transport(self):
+        with patch.dict(os.environ, {'SDLC_DATA_ROLE':'unassigned'}):
+            with HttpClient(self.profile, {'op':operation()}, transport=httpx.MockTransport(
+                    lambda req: self.fail('unexpected request'))) as client:
+                with self.assertRaises(PolicyError):
+                    client.request(self.req)
 
     def test_read_retry_connection_and_projection(self):
         calls=[];waits=[]
@@ -104,9 +115,12 @@ class WriteConnection:
 
 class OracleWriteTests(unittest.TestCase):
     def setUp(self):
+        role = patch.dict(os.environ, {'SDLC_DATA_ROLE':'test'})
+        role.start()
+        self.addCleanup(role.stop)
         tmp=tempfile.TemporaryDirectory();self.addCleanup(tmp.cleanup)
         p=Path(tmp.name)/'writes.json';p.write_text(json.dumps({'update':{'effect':'write','sql':'UPDATE t SET v=:v WHERE id=:id','binds':['id','v']}}))
-        self.profile={'mode':'thin','writes_file':str(p),'allowed_writes':['update'],'allow_write':True}
+        self.profile={'role_access':{'test':{principal():['read','write']}},'mode':'thin','writes_file':str(p),'allowed_writes':['update'],'allow_write':True}
         self.request={'operation':'update','binds':{'id':1,'v':'new'},'expected_rows':1}
     def test_matching_count_commits(self):
         c=WriteConnection();result=run_write(self.profile,self.request,True,lambda _:c)

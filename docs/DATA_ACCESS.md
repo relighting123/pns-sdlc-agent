@@ -83,3 +83,13 @@ SQL syntax guard와 rowcount는 완전한 보안/업무 검증이 아니다. 트
 - https://www.python-httpx.org/advanced/clients/
 - https://www.python-httpx.org/advanced/timeouts/
 - https://python-oracledb.readthedocs.io/en/v3.4.0/user_guide/txn_management.html
+
+## 로컬 역할 설정
+
+각 외부 Oracle database 또는 HTTP profile 안에 아래처럼 role_access를 추가합니다. requirements는 iFlow·Cube 조회, develop은 Oracle 조회에 배정합니다. 스킬을 실행하는 한 명령에 SDLC_DATA_ROLE을 해당 역할로 설정합니다. Unix 키는 실행 계정명, Windows 키는 whoami /user에 표시되는 SID입니다.
+
+```json
+{"role_access":{"requirements":{"YOUR_OS_USER_OR_SID":["read"]}}}
+```
+
+기존 프로필도 설정을 추가해야 합니다. 역할·계정·효과 중 하나라도 일치하지 않으면 실행이 거절됩니다. 기존 작업 ID 허용 목록과 쓰기 승인도 그대로 적용됩니다. 같은 OS 계정에 두 역할을 부여하면 둘 다 선택할 수 있습니다. 이 검사는 로컬 프로필을 신뢰하며 서브에이전트 자체의 신원을 증명하지 않습니다. 실제 권한 한도는 서비스 계정과 토큰에서 관리합니다.

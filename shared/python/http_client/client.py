@@ -8,8 +8,10 @@ import time
 from pathlib import Path
 from urllib.parse import quote, urlsplit
 
+from credential_store import resolve
 import httpx
 from jsonschema import Draft202012Validator
+from execution_policy.local_role import authorize
 from execution_policy import PolicyError, bounded_int, require_effect
 from execution_result import error_result
 
@@ -36,7 +38,7 @@ class HttpClient:
         auth = profile.get('auth', {'type': 'none'})
         kind = auth.get('type')
         if kind in ('bearer', 'header'):
-            value = os.environ.get(auth.get('token_env',''))
+            value = resolve(auth, 'token')
             if not value or '\r' in value or '\n' in value:
                 raise PolicyError('Missing or invalid credential environment')
             header = 'Authorization' if kind == 'bearer' else auth.get('header','')
@@ -66,6 +68,7 @@ class HttpClient:
         spec = self.catalog.get(operation)
         if not isinstance(spec, dict):
             raise PolicyError('Unknown operation')
+        authorize(self.profile, effect)
         require_effect(spec, effect, self.profile.get('allow_write'), apply)
         method = spec.get('method', '').upper()
         if method not in ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'):

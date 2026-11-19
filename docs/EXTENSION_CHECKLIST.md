@@ -19,7 +19,7 @@
 | [ ] | 결과 계약 | 변경 파일, 커밋, 실행 검사와 결과, 근거, 차단 요소, 다음 행동 |
 | [ ] | Claude 정의 | agents/이름.md: name, description, tools, 본문 |
 | [ ] | Codex 정의 | .codex/agents/sdlc-이름.toml: name, description, developer_instructions |
-| [ ] | 호출 연결 | skills/run-sdlc/SKILL.md에서 배정 조건과 사용할 역할/스킬 설명 |
+| [ ] | 호출 연결 | skills/sdlc-orchestrator/SKILL.md에서 배정 조건과 사용할 역할/스킬 설명 |
 | [ ] | 호스트 차이 | Codex TOML은 대상 프로젝트 .codex/agents에 설치. 자동 배포로 오해하지 않도록 안내 |
 | [ ] | 병렬 작업 | 파일 소유권, 의존성, worktree 필요성, 결과 통합 순서 정의 |
 | [ ] | 권한 | 필요한 도구만 지정. 지침은 실제 OS 권한을 대체하지 않음 |
@@ -72,7 +72,7 @@
 | [ ] | 완료 조건 | 실제 파일·검사·근거 등 확인 가능한 조건 |
 | [ ] | 참고자료 | 필요한 경우 같은 스킬 아래 references/에 배치하고 상대 경로 연결 |
 | [ ] | 실행 도구 | 기존 도구를 사용하거나 필요한 보조 scripts/를 구현 |
-| [ ] | 흐름 연결 | run-sdlc 또는 담당 에이전트가 언제 새 스킬을 읽을지 정의 |
+| [ ] | 흐름 연결 | sdlc-orchestrator 또는 담당 에이전트가 언제 새 스킬을 읽을지 정의 |
 | [ ] | 문맥 절약 | 관련 자료만 단계적으로 읽도록 작성. 위키 전체 주입 금지 |
 | [ ] | 패키지 갱신 | git diff --check 실행 |
 | [ ] | 구조 확인 | tests/test_plugin.py의 스킬 개수 기대값과 패키지 일치 검사 갱신 |

@@ -1,4 +1,5 @@
 import os
+from credential_store import resolve
 import importlib
 from .common import QueryError, read_json, integer
 
@@ -10,7 +11,7 @@ def load_profile(config, database):
     if profile.get('mode') not in ('thin', 'thick'):
         raise QueryError('Profile mode must be thin or thick')
     for key in ('dsn_env', 'user_env', 'password_env'):
-        if not isinstance(profile.get(key), str) or not os.environ.get(profile[key]):
+        if key[:-4] + '_ref' not in profile and not os.environ.get(profile.get(key, '')):
             raise QueryError('Missing profile credential environment: ' + key)
     return profile
 
@@ -23,8 +24,8 @@ def connect(profile):
             if profile.get(key):
                 kwargs[key] = profile[key]
         driver.init_oracle_client(**kwargs)
-    kwargs = dict(dsn=os.environ[profile['dsn_env']], user=os.environ[profile['user_env']],
-                  password=os.environ[profile['password_env']])
+    kwargs = dict(dsn=resolve(profile, 'dsn'), user=resolve(profile, 'user'),
+                  password=resolve(profile, 'password'))
     if profile.get('config_dir'):
         kwargs['config_dir'] = profile['config_dir']
     conn = driver.connect(**kwargs)
