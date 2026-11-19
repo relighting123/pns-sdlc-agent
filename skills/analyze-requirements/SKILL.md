@@ -18,3 +18,5 @@ Read the user request and relevant project documents. Write artifacts/requiremen
 Example: for "notify me about duplicate requests", ask what identifies a duplicate before choosing storage or timing. If the user specifies the same request ID within ten minutes, record a repeat after nine minutes as an acceptance example and clarify the exact boundary only if it affects behavior.
 
 For quantitative requests, follow sibling quantify-requirements/SKILL.md and retain its evidence and measurement conditions under the same REQ ID.
+
+For an ITSM intake assignment, use the operator-provided read-only Oracle profile and the assigned private handoff directory. Run `SDLC_DATA_ROLE=requirements python scripts/itsm_intake.py --config CONFIG --output NEW_FILE` relative to this skill. Return the unchanged handoff path and count to the parent without posting to GitLab. If the read fails, report the failure and discard the partial file.

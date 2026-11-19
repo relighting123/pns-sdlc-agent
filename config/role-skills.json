@@ -4,7 +4,7 @@
   "roles": {
     "requirements": {
       "name": "sdlc-requirements",
-      "description": "Collect requirements and evidence using iFlow and Cube reads.",
+      "description": "Collect requirements and evidence using ITSM view, iFlow and Cube reads.",
       "stage": "analyze-requirements",
       "data_skills": ["quantify-requirements", "read-iflow-data", "read-cube-data"],
       "tools": ["Read", "Grep", "Glob", "Write", "Bash"]

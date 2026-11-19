@@ -36,3 +36,5 @@ skills/ 원본을 직접 수정합니다. 호스트별 에이전트 정의는 ag
 Oracle 조회 공용 스킬 `read-oracle-data`을 추가했습니다. [설치·공통 지식·검증 범위](docs/ORACLE_SKILL.md)를 확인하세요. 전체 스킬은 15개이며 접속 프로필과 인증값은 플러그인 밖에서 관리합니다.
 
 공용 데이터 연동: Oracle·iFlow·Cube의 읽기/변경 스킬을 분리하고 shared/python 클라이언트를 공유합니다. [설정과 예제](docs/DATA_ACCESS.md) · [용어·이름 규칙](docs/NAMING.md). iFlow/Cube 실제 API 명세는 사내 설정으로 등록해야 합니다.
+
+DB 계정과 API 인증 프로필은 [자격증명 위키](wiki/Credentials.md)에서 확인한다.
