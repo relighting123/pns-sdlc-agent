@@ -27,3 +27,11 @@ Read [the setup, approval and resume rules](references/itsm-gitlab.md). Assign s
 For parallel tickets, use --dispatch to reserve approved assignments. In the current main session, spawn one native subagent of the mapped stage role per returned assignment. Repeated roles use separate threads. Provide only that ticket, its assigned worktree and stage. Track IID, assignment, thread ID and pending questions in the ticket checkpoint. Route questions and answers through the main session. After verifying the committed stage evidence, call gitlab_issue_sync.py --config CONFIG --intake HANDOFF --complete ASSIGNMENT using a handoff containing only that ticket. Close the finished thread. When resuming, reconcile active assignments against checkpoints before launching new work. Never start a separate Codex CLI per ticket.
 
 Start all eligible native agents before waiting for the first report. Use the returned agent name and distinct ticket worktree even when several assignments have the same role. Limit open threads to the smaller of the host capacity and dispatch.workers. Queue reserved assignments locally until a thread is available. For access profiles consult ../../wiki/Credentials.md and pass only the profile ID to the assigned agent.
+
+For ticket dispatch configure a trusted local test command as an argument list in
+`dispatch.verify_command` (for example `["python", "-m", "pytest"]` for a pytest
+project). Verification runs it against the assigned target_sha. During verification,
+review and deployment keep the checkout clean and record evidence in the ticket.
+Deploy the exact target_sha from the assignment using a revision-pinned deployment
+command. If the deployment backend cannot accept or confirm that revision, stop
+and leave the assignment incomplete.

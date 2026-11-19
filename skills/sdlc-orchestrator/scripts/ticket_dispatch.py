@@ -29,6 +29,7 @@ def dispatch(client, config, ticket, completion=None):
         with db:
             db.execute('CREATE TABLE IF NOT EXISTS ticket_run (id TEXT PRIMARY KEY, revision TEXT, '
                        'stage INTEGER, session TEXT, gate TEXT, head TEXT, running INTEGER)')
+            db.execute('CREATE TABLE IF NOT EXISTS ticket_verification (id TEXT PRIMARY KEY, sha TEXT NOT NULL)')
             db.execute('INSERT OR IGNORE INTO ticket_run VALUES (?, ?, 0, NULL, ?, NULL, 0)',
                        (key, ticket['revision'], uuid.uuid4().hex))
         db.execute('BEGIN IMMEDIATE')
@@ -40,6 +41,7 @@ def dispatch(client, config, ticket, completion=None):
                 return 'stale completion'
             if row['revision'] != ticket['revision']:
                 with db:
+                    db.execute('DELETE FROM ticket_verification WHERE id=?', (key,))
                     db.execute('UPDATE ticket_run SET revision=?, stage=0, session=NULL, gate=?, head=NULL, running=0 WHERE id=?',
                                (ticket['revision'], uuid.uuid4().hex, key))
                 return 'input changed; new approval required'
@@ -68,11 +70,29 @@ def dispatch(client, config, ticket, completion=None):
             if git(folder, 'branch', '--show-current') != branch or git(folder, 'status', '--porcelain'):
                 return 'inspect ticket worktree'
             head = git(folder, 'rev-parse', 'HEAD')
+            release_stage = stage in ('verify-change', 'review-release', 'deploy-release')
+            if release_stage:
+                verified = db.execute('SELECT sha FROM ticket_verification WHERE id=?', (key,)).fetchone()
+                if (head != row['head'] or
+                        (stage != 'verify-change' and (not verified or verified['sha'] != head))):
+                    db.execute('DELETE FROM ticket_verification WHERE id=?', (key,))
+                    db.execute('UPDATE ticket_run SET stage=?, gate=?, head=?, running=0 WHERE id=?',
+                               (stages.index('verify-change'), uuid.uuid4().hex, head, key))
+                    return 'verification and fresh approval required'
             if completion is not None:
-                if head == row['session']:
-                    return 'new stage commit required'
-                git(folder, 'merge-base', '--is-ancestor', row['session'], head)
-                git(folder, 'ls-files', '--error-unmatch', 'artifacts/sdlc-progress.md')
+                if stage == 'verify-change':
+                    command = opts.get('verify_command')
+                    if not isinstance(command, list) or not command or not all(isinstance(v, str) and v for v in command):
+                        return 'configure dispatch.verify_command before verification'
+                    result = subprocess.run(command, cwd=folder, timeout=600)
+                    if result.returncode or git(folder, 'rev-parse', 'HEAD') != head or git(folder, 'status', '--porcelain'):
+                        return 'verification failed or checkout changed'
+                    db.execute('INSERT OR REPLACE INTO ticket_verification VALUES (?, ?)', (key, head))
+                elif not release_stage:
+                    if head == row['session']:
+                        return 'new stage commit required'
+                    git(folder, 'merge-base', '--is-ancestor', row['session'], head)
+                    git(folder, 'ls-files', '--error-unmatch', 'artifacts/sdlc-progress.md')
                 client.post(path + '/notes', json={'body': f'SDLC {stage} 완료 · {head}'}).raise_for_status()
                 db.execute('UPDATE ticket_run SET stage=?, gate=?, head=?, running=0 WHERE id=?',
                            (index + 1, uuid.uuid4().hex, head, key))
@@ -84,7 +104,7 @@ def dispatch(client, config, ticket, completion=None):
                 return 'deferred: active ticket limit'
             db.execute('UPDATE ticket_run SET running=1, session=? WHERE id=?', (head, key))
             role = ('requirements', 'design', 'develop', 'test', 'review', 'deploy')[index]
-            return {'stage': stage, 'agent': 'sdlc-' + role, 'worktree': str(folder), 'assignment': row['gate']}
+            return {'stage': stage, 'target_sha': head, 'agent': 'sdlc-' + role, 'worktree': str(folder), 'assignment': row['gate']}
         except Exception:
             db.rollback()
             raise

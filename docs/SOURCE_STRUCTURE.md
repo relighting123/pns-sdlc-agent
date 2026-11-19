@@ -10,7 +10,6 @@
 | hooks/ | 호스트가 시작 이벤트에서 sh 스크립트를 실행한다. |
 | .claude-plugin/ | Claude 매니페스트·마켓플레이스 등록 |
 | .codex-plugin/ | Codex 매니페스트 |
-| templates/wiki/ | 대상 프로젝트 wiki/의 기본 양식 |
 | docs/ | 개발·확장·검증 설명 |
 | tests/ | 구조와 훅 실행 검사 |
 

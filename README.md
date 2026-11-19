@@ -13,7 +13,6 @@
 | .claude-plugin/ | Claude 매니페스트와 마켓플레이스 |
 | .codex-plugin/ | Codex 호환 매니페스트 |
 | .agents/plugins/ | Codex 마켓플레이스: 저장소 루트를 가리킴 |
-| templates/wiki/ | 대상 프로젝트에 복사할 위키 양식 |
 | docs/ | 구조·개발·확장 가이드 |
 | tests/ | 플러그인 구조와 훅 검사 |
 
@@ -38,3 +37,5 @@ Oracle 조회 공용 스킬 `read-oracle-data`을 추가했습니다. [설치·�
 공용 데이터 연동: Oracle·iFlow·Cube의 읽기/변경 스킬을 분리하고 shared/python 클라이언트를 공유합니다. [설정과 예제](docs/DATA_ACCESS.md) · [용어·이름 규칙](docs/NAMING.md). iFlow/Cube 실제 API 명세는 사내 설정으로 등록해야 합니다.
 
 DB 계정과 API 인증 프로필은 [자격증명 위키](wiki/Credentials.md)에서 확인한다.
+
+공용 지식 검색에는 `search-shared-knowledge` 스킬을 사용합니다. `config/shared-knowledge.json`에서 Git 주소, 브랜치, 로컬 저장소 경로를 설정할 수 있습니다. `SDLC_WIKI_URL`, `SDLC_WIKI_BRANCH`, `SDLC_WIKI_LOCAL`로 각각 덮어쓸 수 있습니다. 매 검색 시 원격 브랜치의 최신 커밋을 조회합니다. 같은 저장소의 로컬 커밋이 일치하고 위키에 변경이 없으면 재사용하고, 다르면 해당 커밋의 캐시를 사용하거나 내려받습니다. 최신 확인에 실패한 경우 기존 캐시 결과에 `stale-unverified`가 표시됩니다.
